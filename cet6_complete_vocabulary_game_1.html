@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六级词汇完整版游戏 🎮</title>
+    <style>
+        /* CSS 样式部分保持不变，已优化移动端体验 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        h1 { text-align: center; color: #667eea; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9em; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-item { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 10px; }
+        .stat-label { font-size: 0.75em; color: #666; margin-bottom: 5px; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #667eea; }
+        .game-mode-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .mode-btn { padding: 10px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 10px; cursor: pointer; transition: all 0.3s; font-weight: bold; }
+        .mode-btn:hover, .mode-btn.active { background: #667eea; color: white; }
+        .progress-bar { width: 100%; height: 8px; background: #ddd; border-radius: 5px; overflow: hidden; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s; }
+        .game-area { background: #f8f9fa; border-radius: 15px; padding: 30px; min-height: 300px; margin-bottom: 20px; position: relative; }
+        .word-card { background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); animation: flipIn 0.5s ease-out; }
+        @keyframes flipIn { from { opacity: 0; transform: rotateY(90deg); } to { opacity: 1; transform: rotateY(0); } }
+        .word-english { font-size: 2.5em; font-weight: bold; color: #667eea; margin-bottom: 15px; word-break: break-word; }
+        .word-chinese { font-size: 1.2em; color: #666; line-height: 1.6; }
+        .options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .option-btn { padding: 15px; border: 2px solid #ddd; background: white; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 1em; text-align: left; }
+        .option-btn:hover { border-color: #667eea; background: #f0f4ff; }
+        .option-btn.correct { background: #28a745; color: white; border-color: #28a745; }
+        .option-btn.wrong { background: #dc3545; color: white; border-color: #dc3545; }
+        .control-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; transition: transform 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-primary { background: #667eea; }
+        .btn-secondary { background: #6c757d; }
+        .btn-success { background: #28a745; }
+        .feedback { text-align: center; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: bold; }
+        .feedback.correct { background: #d4edda; color: #155724; }
+        .feedback.wrong { background: #f8d7da; color: #721c24; }
+        .input-area input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.2em; text-align: center; margin-top: 20px; }
+        .filter-section { background: #eee; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .filter-section input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+        
+        @media (max-width: 600px) {
+            .options { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 六级词汇挑战</h1>
+        <p class="subtitle">包含 500+ 高频核心词汇</p>
+
+        <div class="stats">
+            <div class="stat-item"><div class="stat-label">进度</div><div class="stat-value"><span id="progress">0</span>/<span id="total">0</span></div></div>
+            <div class="stat-item"><div class="stat-label">正确率</div><div class="stat-value"><span id="accuracy">0</span>%</div></div>
+            <div class="stat-item"><div class="stat-label">连对</div><div class="stat-value"><span id="streak">0</span></div></div>
+            <div class="stat-item"><div class="stat-label">已掌握</div><div class="stat-value"><span id="learned">0</span></div></div>
+        </div>
+
+        <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+
+        <div class="game-mode-selector">
+            <button class="mode-btn active" onclick="setGameMode('flashcard')">📇 记忆卡</button>
+            <button class="mode-btn" onclick="setGameMode('choice')">🎯 选择题</button>
+            <button class="mode-btn" onclick="setGameMode('typing')">⌨️ 拼写</button>
+            <button class="mode-btn" onclick="setGameMode('match')">🔗 连连看</button>
+        </div>
+
+        <div class="filter-section">
+            <label>🔍 搜索单词 (支持中英文):</label>
+            <input type="text" id="searchBox" placeholder="例如: nuisance..." oninput="handleSearch()">
+        </div>
+
+        <div class="game-area" id="gameArea"></div>
+
+        <div class="control-buttons">
+            <button class="btn btn-secondary" onclick="previousWord()">⬅️ 上一个</button>
+            <button class="btn btn-primary" onclick="nextWord()">下一个 ➡️</button>
+            <button class="btn btn-secondary" onclick="toggleShuffle()">🔀 <span id="shuffleText">随机</span></button>
+            <button class="btn btn-success" onclick="restartGame()">🔄 重置</button>
+        </div>
+    </div>
+
+    <script>
+        // 你的完整词汇表 (这里保留了你的数据结构)
+        const vocabulary = [
+            {"en": "nuisance", "cn": "令人讨厌的东西; 讨厌的人"},
+            {"en": "riot", "cn": "骚乱; 暴乱"},
+            {"en": "conquer", "cn": "征服; 破除"},
+            {"en": "offensive", "cn": "冒犯的; 攻击性的"},
+            {"en": "penalty", "cn": "处罚; 罚金"},
+            {"en": "scatter", "cn": "撒; 使散开; 消散"},
+            {"en": "transmission", "cn": "播送; 传送; 传染"},
+            {"en": "melt", "cn": "(使)融化; (使)消散"},
+            {"en": "diagram", "cn": "图解; 简图; 图表"},
+            {"en": "helpful", "cn": "有益的; 给予帮助的"},
+            {"en": "scratch", "cn": "抓; 刮擦; 抓痕"},
+            {"en": "presumably", "cn": "大概; 据推测"},
+            {"en": "halt", "cn": "停住; 暂停"},
+            {"en": "supplement", "cn": "增补(物); 增刊; 补充"},
+            {"en": "formal", "cn": "正式的; 形式上的"},
+            {"en": "glimpse", "cn": "瞥见; 一瞥"},
+            {"en": "vertical", "cn": "垂直的"},
+            {"en": "sketch", "cn": "草图; 梗概; 素描"},
+            {"en": "nasty", "cn": "令人讨厌的; 难弄的; 下流的"},
+            {"en": "consent", "cn": "同意; 赞成"},
+            {"en": "legal", "cn": "法律(上)的; 合法的"},
+            {"en": "tension", "cn": "紧张; 绷紧; 张力"},
+            {"en": "motel", "cn": "汽车旅馆"},
+            {"en": "manufacture", "cn": "制造; 制造品"},
+            {"en": "residential", "cn": "居住的; 住宅的; 寄宿的"},
+            {"en": "climate", "cn": "气候; 风气"},
+            {"en": "superb", "cn": "极好的; 高质量的"},
+            {"en": "wit", "cn": "风趣; 智力; 才智"},
+            {"en": "absorb", "cn": "吸收; 使全神贯注"},
+            {"en": "squeeze", "cn": "挤; 压榨; 捏; 拮据"},
+            {"en": "dislike", "cn": "不喜爱; 厌恶"},
+            {"en": "resent", "cn": "对...表示忿恨"},
+            {"en": "prohibit", "cn": "禁止; 阻止"},
+            {"en": "transportation", "cn": "运输; 运输系统"},
+            {"en": "mere", "cn": "仅仅的; 纯粹的"},
+            {"en": "spite", "cn": "恶意; 怨恨; 不顾"},
+            {"en": "mess", "cn": "凌乱状态; 困境; 弄糟"},
+            {"en": "anyhow", "cn": "无论如何; 随随便便地"},
+            {"en": "greedy", "cn": "贪婪的; 渴望的"},
+            {"en": "media", "cn": "新闻媒介; 媒体"},
+            {"en": "selection", "cn": "选择; 选集"},
+            {"en": "magnificent", "cn": "宏伟的; 豪华的; 极好的"},
+            {"en": "elastic", "cn": "橡皮圈; 有弹性的; 灵活的"},
+            {"en": "dominate", "cn": "支配; 耸立于"},
+            {"en": "ally", "cn": "同盟者; (使)联合"},
+            {"en": "stir", "cn": "搅拌; 使微动; 打动; 产生"},
+            {"en": "origin", "cn": "起源; 出身"},
+            {"en": "argument", "cn": "争论; 论据; 说理"},
+            {"en": "versus", "cn": "以...为对手; 与...相对"},
+            {"en": "client", "cn": "委托人; 顾客"},
+            {"en": "tender", "cn": "嫩的; 温柔的; 投标"},
+            {"en": "desirable", "cn": "值得向往的; 可取的"},
+            {"en": "define", "cn": "给...下定义; 限定"},
+            {"en": "bid", "cn": "出价; 投标; 祝愿; 命令"},
+            {"en": "farewell", "cn": "告别; 欢送会"},
+            {"en": "nurture", "cn": "养育; 培育"},
+            {"en": "instant", "cn": "即刻的; 速溶的; 瞬间"},
+            {"en": "fierce", "cn": "凶猛的; 狂热的; 猛烈的"},
+            {"en": "mankind", "cn": "人类"},
+            {"en": "sexual", "cn": "性的; 性别的"},
+            {"en": "female", "cn": "雌的; 女(性)的"},
+            {"en": "sociology", "cn": "社会学"},
+            {"en": "dismiss", "cn": "不再考虑; 解雇; 驳回"},
+            {"en": "advertisement", "cn": "广告; 宣传"},
+            {"en": "target", "cn": "目标; 靶子; 瞄准"},
+            {"en": "agency", "cn": "代理行; 专门行政部门"},
+            {"en": "appropriate", "cn": "适当的; 私占; 拨出款项"},
+            {"en": "attractive", "cn": "有吸引力的"},
+            {"en": "medium", "cn": "中等的; 媒介; 手段"},
+            {"en": "impress", "cn": "给...深刻印象; 压印"},
+            {"en": "image", "cn": "形象; 印象; 图像"},
+            {"en": "vehicle", "cn": "交通工具; 传播媒介"},
+            {"en": "channel", "cn": "频道; 渠道; 海峡"},
+            {"en": "segment", "cn": "部分; 片段; 瓣"},
+            {"en": "available", "cn": "现成可用的; 可得到的"},
+            {"en": "sheer", "cn": "完全的; 陡峭的; 极薄的"},
+            {"en": "expose", "cn": "暴露; 揭露; 使处于...下"},
+            {"en": "digital", "cn": "数字的"},
+            {"en": "device", "cn": "装置; 策略"},
+            {"en": "commercial", "cn": "商业的; 商品化的; 广告"},
+            {"en": "network", "cn": "网状物; 广播网; 网络"},
+            {"en": "choke", "cn": "(使)窒息; 呛; 塞满"},
+            {"en": "gas", "cn": "气体; 煤气; 汽油"},
+            {"en": "preceding", "cn": "前面的; 在先的"},
+            {"en": "precision", "cn": "精确(性)"},
+            {"en": "classical", "cn": "古典的; 经典的"},
+            {"en": "host", "cn": "主人; 主持人; 许多"},
+            {"en": "terminal", "cn": "晚期的; 终点; 终端"},
+            {"en": "cable", "cn": "缆绳; 电缆; 电报"},
+            {"en": "annual", "cn": "每年的; 年报; 一年生植物"},
+            {"en": "revenue", "cn": "收入; 税收"},
+            {"en": "delivery", "cn": "投递; 分娩; 演讲"},
+            {"en": "brilliant", "cn": "灿烂的; 卓越的"},
+            {"en": "bump", "cn": "碰; 撞; 颠簸; 肿块"},
+            {"en": "cabinet", "cn": "内阁; 陈列柜"},
+            {"en": "furthermore", "cn": "而且; 此外"},
+            {"en": "certainty", "cn": "必然的事; 确信"},
+            {"en": "characteristic", "cn": "特有的; 特性"},
+            {"en": "conjunction", "cn": "连接; 联合; 连词"},
+            {"en": "chill", "cn": "寒冷; 风寒; 使变冷"},
+            {"en": "Internet", "cn": "因特网"},
+            {"en": "disperse", "cn": "分散; 消散"},
+            {"en": "veteran", "cn": "老兵; 老手"},
+            {"en": "heroic", "cn": "英雄的; 英勇的"},
+            {"en": "entertain", "cn": "款待; 给...娱乐"},
+            {"en": "rebel", "cn": "反叛分子; 反对"},
+            {"en": "shelter", "cn": "掩蔽处; 住所; 庇护"},
+            {"en": "decrease", "cn": "减小; 减少"},
+            {"en": "resolution", "cn": "决议; 决心; 分辨率"},
+            {"en": "prominent", "cn": "突出的; 杰出的"},
+            {"en": "persuasion", "cn": "说服; 信念"},
+            {"en": "complicated", "cn": "复杂的"},
+            {"en": "revolutionary", "cn": "革命的; 革新的"},
+            {"en": "extensive", "cn": "广阔的; 广泛的"},
+            {"en": "replace", "cn": "取代; 更换; 把...放回"},
+            {"en": "pace", "cn": "步; 速度; 踱步"},
+            {"en": "update", "cn": "更新; 最新信息"},
+            {"en": "injury", "cn": "损害; 受伤处"},
+            {"en": "cherish", "cn": "珍爱; 抚育; 怀有"},
+            {"en": "element", "cn": "元素; 成分; 基础"},
+            {"en": "creation", "cn": "创造; 产物; 宇宙"},
+            {"en": "freight", "cn": "货物; 运送"},
+            {"en": "rail", "cn": "栏杆; 铁轨; 咒骂"},
+            {"en": "spin", "cn": "旋转; 纺纱; 晕眩"},
+            {"en": "route", "cn": "路线; 路程"},
+            {"en": "twist", "cn": "缠绕; 扭伤; 曲折前进"},
+            {"en": "heal", "cn": "愈合; 使康复; 调停"},
+            {"en": "balcony", "cn": "阳台; 楼厅"},
+            {"en": "tragic", "cn": "悲惨的; 悲剧性的"},
+            {"en": "occasion", "cn": "时刻; 场合; 时机"},
+            {"en": "tedious", "cn": "乏味的; 单调的"},
+            {"en": "plot", "cn": "情节; 阴谋; 小块地"},
+            {"en": "chaos", "cn": "混乱"},
+            {"en": "appliance", "cn": "器具; 家电"},
+            {"en": "disguise", "cn": "假扮; 伪装; 掩盖"},
+            {"en": "welfare", "cn": "福利"},
+            {"en": "accent", "cn": "口音; 重音"},
+            {"en": "senior", "cn": "资格较老的; 年长的"},
+            {"en": "rob", "cn": "抢劫; 剥夺"},
+            {"en": "pension", "cn": "养老金; 抚恤金"},
+            {"en": "flash", "cn": "闪烁; 飞驰; 闪光灯"},
+            {"en": "slip", "cn": "滑倒; 溜走; 疏漏"},
+            {"en": "fraction", "cn": "小部分; 分数"},
+            {"en": "luxury", "cn": "奢侈(品)"},
+            {"en": "consultant", "cn": "顾问; 会诊医师"},
+            {"en": "cruise", "cn": "航游; 巡航"},
+            {"en": "orient", "cn": "使适应; 使朝向; 东方"},
+            {"en": "collective", "cn": "集体的; 集体"},
+            {"en": "weave", "cn": "织; 编"},
+            {"en": "fort", "cn": "堡垒"},
+            {"en": "invaluable", "cn": "非常宝贵的; 无价的"},
+            {"en": "barrier", "cn": "栅栏; 障碍; 屏障"},
+            {"en": "entry", "cn": "进入; 入口; 参赛者"},
+            {"en": "curve", "cn": "曲线; 弯曲"},
+            {"en": "remote", "cn": "遥远的; 关系疏远的"},
+            {"en": "survival", "cn": "幸存; 幸存者"},
+            {"en": "violence", "cn": "暴力; 猛烈"},
+            {"en": "depression", "cn": "抑郁; 萧条; 洼地"},
+            {"en": "financial", "cn": "财政的; 金融的"},
+            {"en": "breed", "cn": "品种; 繁殖; 酿成"},
+            {"en": "divorce", "cn": "离婚; 分离"},
+            {"en": "blend", "cn": "混合; 混合物"},
+            {"en": "flee", "cn": "逃走; 避开"},
+            {"en": "fortnight", "cn": "十四天; 两星期"},
+            {"en": "certificate", "cn": "证书; 执照"},
+            {"en": "exchange", "cn": "交换; 兑换"},
+            {"en": "volunteer", "cn": "志愿者; 自愿"},
+            {"en": "rarely", "cn": "不常; 难得"},
+            {"en": "traditional", "cn": "传统的"},
+            {"en": "modernize", "cn": "(使)现代化"},
+            {"en": "connection", "cn": "联系; 连接; 熟人"},
+            {"en": "circular", "cn": "圆形的; 循环的; 通知"},
+            {"en": "toll", "cn": "过路费; 伤亡人数; 敲钟"},
+            {"en": "married", "cn": "已婚的"},
+            {"en": "locate", "cn": "探明; 找出; 位于"},
+            {"en": "routine", "cn": "例行公事; 惯例"},
+            {"en": "spur", "cn": "刺激(物); 激励; 促进"},
+            {"en": "nevertheless", "cn": "仍然; 然而"},
+            {"en": "alter", "cn": "改变; 变更"},
+            {"en": "tune", "cn": "曲子; 调音; 调节"},
+            {"en": "reclaim", "cn": "要回; 开垦; 回收"},
+            {"en": "stale", "cn": "不新鲜的; 陈腐的"},
+            {"en": "bankrupt", "cn": "破产的; 彻底缺乏的"},
+            {"en": "lease", "cn": "租约; 出租"},
+            {"en": "greenhouse", "cn": "温室"},
+            {"en": "secure", "cn": "安全的; 牢固的; 获得"},
+            {"en": "cultivate", "cn": "耕作; 培养"},
+            {"en": "gloomy", "cn": "忧郁的; 昏暗的"},
+            {"en": "witness", "cn": "目击者; 证据; 见证"},
+            {"en": "emerge", "cn": "出现; 暴露"},
+            {"en": "advanced", "cn": "先进的; 高级的; 年迈的"},
+            {"en": "civil", "cn": "公民的; 民用的; 文明的"},
+            {"en": "variable", "cn": "易变的; 变量"},
+            {"en": "slope", "cn": "斜坡; 倾斜"},
+            {"en": "intensity", "cn": "强烈; 强度"},
+            {"en": "underlying", "cn": "含蓄的; 潜在的; 在下面的"},
+            {"en": "urban", "cn": "城市的"},
+            {"en": "overpass", "cn": "天桥; 立交桥"},
+            {"en": "bypass", "cn": "旁道; 绕过"},
+            {"en": "insert", "cn": "插入; 嵌入"},
+            {"en": "collision", "cn": "碰撞; 冲突"},
+            {"en": "explicit", "cn": "明确的; 直言的"},
+            {"en": "sting", "cn": "刺; 蜇; 激怒"},
+            {"en": "translation", "cn": "翻译; 译文"},
+            {"en": "consequently", "cn": "所以; 因此"},
+            {"en": "wander", "cn": "漫游; 走神"},
+            {"en": "enable", "cn": "使能够"},
+            {"en": "intact", "cn": "完整无缺的"},
+            {"en": "strip", "cn": "脱光; 剥去; 条状物"},
+            {"en": "abuse", "cn": "滥用; 虐待; 辱骂"},
+            {"en": "justice", "cn": "正义; 公正; 司法"},
+            {"en": "simplify", "cn": "简化"},
+            {"en": "whistle", "cn": "吹口哨; 汽笛声"},
+            {"en": "schedule", "cn": "时刻表; 安排"},
+            {"en": "considerate", "cn": "体贴的"},
+            {"en": "tolerance", "cn": "宽容; 忍耐(力)"},
+            {"en": "stiff", "cn": "硬的; 僵直的; 拘谨的"},
+            {"en": "competent", "cn": "有能力的; 能胜任的"},
+            {"en": "inner", "cn": "内部的; 内心的"},
+            {"en": "interior", "cn": "内部; 内地"},
+            {"en": "rotate", "cn": "旋转; 轮流"},
+            {"en": "consensus", "cn": "一致同意"},
+            {"en": "flock", "cn": "羊群; 群集"},
+            {"en": "accelerate", "cn": "(使)加快"},
+            {"en": "smash", "cn": "粉碎; 猛击; 轰动的成功"},
+            {"en": "perception", "cn": "感知(能力); 观念"},
+            {"en": "deny", "cn": "否认; 拒绝给予"},
+            {"en": "sole", "cn": "单独的; 唯一的; 脚底"},
+            {"en": "definitely", "cn": "明确地; 肯定地"},
+            {"en": "original", "cn": "起初的; 独创的; 原件"},
+            {"en": "physician", "cn": "内科医生"},
+            {"en": "discharge", "cn": "释放; 排出; 放电"},
+            {"en": "campus", "cn": "校园"},
+            {"en": "typical", "cn": "典型的"},
+            {"en": "effective", "cn": "有效的; 实际的"},
+            {"en": "scholarship", "cn": "奖学金; 学问"},
+            {"en": "saving", "cn": "节省; 储蓄金"},
+            {"en": "moral", "cn": "道德的; 寓意"},
+            {"en": "reality", "cn": "现实; 真实"},
+            {"en": "reduction", "cn": "减少; 降低"},
+            {"en": "consumption", "cn": "消耗量; 消费"},
+            {"en": "likely", "cn": "可能的; 适合的"},
+            {"en": "package", "cn": "包裹; 一揽子交易"},
+            {"en": "tuition", "cn": "教学; 学费"},
+            {"en": "domestic", "cn": "国内的; 家庭的; 驯养的"},
+            {"en": "amount", "cn": "数量; 总数; 合计"},
+            {"en": "unconscious", "cn": "失去知觉的; 无意识的"},
+            {"en": "imperial", "cn": "帝国的; 英制的"},
+            {"en": "promising", "cn": "有希望的; 有前途的"},
+            {"en": "render", "cn": "使得; 给予; 翻译"},
+            {"en": "cling", "cn": "紧抓住; 黏着; 依恋"},
+            {"en": "shiver", "cn": "发抖"},
+            {"en": "heave", "cn": "举起; 发出(叹息); 起伏"},
+            {"en": "profit", "cn": "利润; 益处"},
+            {"en": "gamble", "cn": "赌博; 冒险"},
+            {"en": "acute", "cn": "严重的; 敏锐的; 急性的"},
+            {"en": "uncover", "cn": "揭露; 揭开...的盖子"},
+            {"en": "advisable", "cn": "可取的; 明智的"},
+            {"en": "incredible", "cn": "难以置信的"},
+            {"en": "soak", "cn": "浸泡; 湿透"},
+            {"en": "profile", "cn": "轮廓; 侧面像; 概况"},
+            {"en": "tend", "cn": "趋向; 照管"},
+            {"en": "benefit", "cn": "益处; 救济金; 有益于"},
+            {"en": "proportion", "cn": "比例; 部分; 均衡"},
+            {"en": "dean", "cn": "教长; 系主任"},
+            {"en": "liberal", "cn": "开明的; 自由的; 慷慨的"},
+            {"en": "venture", "cn": "风险投资; 冒险"},
+            {"en": "affect", "cn": "影响; 感动"},
+            {"en": "cooperative", "cn": "合作的; 合作社"},
+            {"en": "project", "cn": "计划; 工程; 投射"},
+            {"en": "respectively", "cn": "各自地"},
+            {"en": "private", "cn": "私人的; 秘密的; 士兵"},
+            {"en": "council", "cn": "委员会; 理事会"},
+            {"en": "action", "cn": "行动; 作用; 情节"},
+            {"en": "risk", "cn": "危险; 风险"},
+            {"en": "blur", "cn": "模糊; (使)变模糊"},
+            {"en": "truly", "cn": "真正地; 忠实地"},
+            {"en": "induce", "cn": "引诱; 导致"},
+            {"en": "dumb", "cn": "哑的; 沉默的"},
+            {"en": "agenda", "cn": "议事日程"},
+            {"en": "comprise", "cn": "包含; 构成"},
+            {"en": "fry", "cn": "油炸"},
+            {"en": "minority", "cn": "少数; 少数民族"},
+            {"en": "index", "cn": "索引; 指数; 标志"},
+            {"en": "vice", "cn": "缺点; 邪恶; 副的"},
+            {"en": "loan", "cn": "贷款; 借出"},
+            {"en": "awkward", "cn": "尴尬的; 笨拙的"},
+            {"en": "quiver", "cn": "颤抖"},
+            {"en": "crack", "cn": "破裂; 裂缝; 噼啪声"},
+            {"en": "defy", "cn": "违抗; 藐视; 挑衅"},
+            {"en": "constant", "cn": "始终如一的; 恒量"},
+            {"en": "logical", "cn": "逻辑的; 合乎常理的"},
+            {"en": "afterward", "cn": "以后; 后来"},
+            {"en": "overnight", "cn": "一夜之间; 突然的"},
+            {"en": "aid", "cn": "援助; 辅助物"},
+            {"en": "creative", "cn": "有创造力的"},
+            {"en": "fashion", "cn": "方式; 流行款式"},
+            {"en": "pursue", "cn": "追求; 追赶; 继续"},
+            {"en": "revise", "cn": "修订; 复习"},
+            {"en": "attitude", "cn": "态度; 姿势"},
+            {"en": "evil", "cn": "邪恶的; 罪恶"},
+            {"en": "cash", "cn": "现金; 兑现"},
+            {"en": "brand", "cn": "商标; 品牌; 烙印"},
+            {"en": "pose", "cn": "造成; 提出; 摆姿势"},
+            {"en": "gym", "cn": "体育馆; 健身房"},
+            {"en": "terrific", "cn": "极妙的; 极大的"},
+            {"en": "yield", "cn": "屈服; 产量; 产生"},
+            {"en": "scan", "cn": "细看; 扫描; 浏览"},
+            {"en": "equivalent", "cn": "相等的; 等价物"},
+            {"en": "poll", "cn": "民意测验; 投票"},
+            {"en": "overwhelming", "cn": "势不可挡的; 巨大的"},
+            {"en": "imply", "cn": "暗示"},
+            {"en": "indifferent", "cn": "冷漠的; 一般的"},
+            {"en": "somewhat", "cn": "稍微; 有点"},
+            {"en": "anyway", "cn": "不管怎么说"},
+            {"en": "compute", "cn": "计算; 估算"},
+            {"en": "data", "cn": "数据; 资料"},
+            {"en": "prescribe", "cn": "开药; 规定"},
+            {"en": "influence", "cn": "影响(力); 势力"},
+            {"en": "opponent", "cn": "对手; 反对者"},
+            {"en": "oppose", "cn": "反对"},
+            {"en": "intellect", "cn": "智力; 才智"},
+            {"en": "gross", "cn": "总的; 粗俗的; 严重的"},
+            {"en": "deduct", "cn": "扣除"},
+            {"en": "mall", "cn": "购物中心"},
+            {"en": "nowhere", "cn": "任何地方都不"},
+            {"en": "flush", "cn": "脸红; 冲洗; 齐平的"},
+            {"en": "recall", "cn": "回忆起; 召回"},
+            {"en": "proceed", "cn": "继续进行; 前进"},
+            {"en": "rub", "cn": "摩擦; 揉"},
+            {"en": "exclaim", "cn": "呼喊; 惊叫"},
+            {"en": "court", "cn": "法庭; 球场; 宫廷"},
+            {"en": "dimension", "cn": "尺寸; 维度; 面积"},
+            {"en": "echo", "cn": "回音; 共鸣; 模仿"},
+            {"en": "pierce", "cn": "刺穿; 穿孔"},
+            {"en": "accordingly", "cn": "相应地; 所以"},
+            {"en": "opening", "cn": "口子; 开始; 空缺"},
+            {"en": "sphere", "cn": "球体; 领域"},
+            {"en": "doll", "cn": "玩偶"},
+            {"en": "accountant", "cn": "会计师"},
+            {"en": "acid", "cn": "酸; 尖刻的"},
+            {"en": "nuclear", "cn": "核能的; 核心的"},
+            {"en": "standpoint", "cn": "立场; 观点"},
+            {"en": "deputy", "cn": "副职; 代表"},
+            {"en": "highly", "cn": "非常; 高度地"},
+            {"en": "holy", "cn": "神圣的; 虔诚的"},
+            {"en": "acquisition", "cn": "获得; 获得物"},
+            {"en": "navy", "cn": "海军"},
+            {"en": "gravity", "cn": "重力; 严重; 严肃"},
+            {"en": "merry", "cn": "欢乐的"},
+            {"en": "optimistic", "cn": "乐观的"},
+            {"en": "ease", "cn": "容易; 悠闲; 缓和"},
+            {"en": "election", "cn": "选举"},
+            {"en": "maintenance", "cn": "维修; 维持; 抚养费"},
+            {"en": "adult", "cn": "成年人"},
+            {"en": "roast", "cn": "烤; 烤肉"},
+            {"en": "chap", "cn": "小伙子; (皮肤)皲裂"},
+            {"en": "banner", "cn": "横幅; 旗帜"},
+            {"en": "flourish", "cn": "茂盛; 兴旺; 挥舞"},
+            {"en": "shell", "cn": "壳; 炮弹; 剥壳"},
+            {"en": "meantime", "cn": "其间; 同时"},
+            {"en": "subtle", "cn": "微妙的; 隐约的"},
+            {"en": "condense", "cn": "凝结; 压缩"},
+            {"en": "successive", "cn": "连续的"},
+            {"en": "annoy", "cn": "使烦恼; 打扰"},
+            {"en": "airline", "cn": "航空公司; 航线"},
+            {"en": "click", "cn": "点击; 咔哒声"},
+            {"en": "alongside", "cn": "在旁边; 并排"},
+            {"en": "frontier", "cn": "边境; 前沿"},
+            {"en": "licence", "cn": "执照; 许可"},
+            {"en": "revolt", "cn": "反叛; 反抗; 使厌恶"},
+            {"en": "poster", "cn": "海报; 招贴"},
+            {"en": "oxygen", "cn": "氧气"},
+            {"en": "amid", "cn": "在...中间"},
+            {"en": "besides", "cn": "而且; 除...之外"},
+            {"en": "moist", "cn": "潮湿的"},
+            {"en": "conversely", "cn": "相反地"},
+            {"en": "journalist", "cn": "新闻工作者; 记者"},
+            {"en": "amusement", "cn": "娱乐; 消遣"},
+            {"en": "triumph", "cn": "胜利; 喜悦"},
+            {"en": "drama", "cn": "戏剧; 剧本"},
+            {"en": "weaken", "cn": "变弱; 削弱"},
+            {"en": "amusing", "cn": "有趣的"},
+            {"en": "semester", "cn": "学期"},
+            {"en": "register", "cn": "登记; 注册; 指示"},
+            {"en": "inevitable", "cn": "不可避免的"},
+            {"en": "frustrate", "cn": "使沮丧; 挫败"},
+            {"en": "patience", "cn": "耐心"},
+            {"en": "combine", "cn": "结合; 联合"},
+            {"en": "automobile", "cn": "汽车"},
+            {"en": "input", "cn": "输入; 投入"},
+            {"en": "manipulate", "cn": "操纵; 操作"},
+            {"en": "insane", "cn": "疯狂的; 精神失常的"},
+            {"en": "shallow", "cn": "浅的; 浅薄的"},
+            {"en": "integrity", "cn": "正直; 完整"},
+            {"en": "jealous", "cn": "妒忌的"},
+            {"en": "specific", "cn": "特定的; 具体的"},
+            {"en": "challenge", "cn": "挑战; 艰巨任务"},
+            {"en": "outer", "cn": "外面的; 外部的"},
+            {"en": "volcano", "cn": "火山"},
+            {"en": "essential", "cn": "必不可少的; 本质的"},
+            {"en": "adequate", "cn": "充足的; 胜任的"},
+            {"en": "hopeless", "cn": "绝望的"},
+            {"en": "despair", "cn": "绝望"},
+            {"en": "globe", "cn": "地球; 地球仪"},
+            {"en": "nominate", "cn": "提名; 任命"},
+            {"en": "roar", "cn": "咆哮; 轰鸣"},
+            {"en": "harm", "cn": "伤害; 损害"},
+            {"en": "extinguish", "cn": "熄灭; 使消亡"},
+            {"en": "principal", "cn": "主要的; 校长; 本金"},
+            {"en": "principle", "cn": "原则; 原理"},
+            {"en": "sympathy", "cn": "同情; 赞同"},
+            {"en": "motive", "cn": "动机; 目的"},
+            {"en": "vibrate", "cn": "振动; 摇摆"},
+            {"en": "growth", "cn": "增长; 生长"},
+            {"en": "reproduce", "cn": "复制; 繁殖"},
+            {"en": "veil", "cn": "面纱; 遮盖物"},
+            {"en": "productive", "cn": "多产的; 富有成效的"},
+            {"en": "integral", "cn": "构成整体必需的"},
+            {"en": "conflict", "cn": "冲突; 斗争"},
+            {"en": "setting", "cn": "环境; 背景; 调节"},
+            {"en": "gossip", "cn": "流言蜚语; 说长道短"},
+            {"en": "interfere", "cn": "干涉; 干扰"},
+            {"en": "soar", "cn": "猛增; 高飞"},
+            {"en": "idle", "cn": "懒散的; 空闲的"},
+            {"en": "vote", "cn": "投票; 选票"},
+            {"en": "preserve", "cn": "保护; 保存; 腌制"},
+            {"en": "discount", "cn": "折扣; 打折; 漠视"},
+            {"en": "surrender", "cn": "投降; 屈服"},
+            {"en": "coupon", "cn": "优惠券"},
+            {"en": "rare", "cn": "稀有的; 半熟的"},
+            {"en": "mature", "cn": "成熟的; 到期的"},
+            {"en": "dense", "cn": "密集的; 浓厚的"},
+            {"en": "clumsy", "cn": "笨拙的"},
+            {"en": "supreme", "cn": "至高的; 极度的"},
+            {"en": "fertile", "cn": "肥沃的; 多产的"},
+            {"en": "underline", "cn": "划线; 强调"},
+            {"en": "vanish", "cn": "消失; 灭绝"},
+            {"en": "criticism", "cn": "批评; 评论"},
+            {"en": "reassure", "cn": "使放心"},
+            {"en": "sticky", "cn": "黏的; 湿热的"},
+            {"en": "defiance", "cn": "违抗; 藐视"},
+            {"en": "comment", "cn": "评论; 意见"},
+            {"en": "counter", "cn": "柜台; 反驳; 计数器"},
+            {"en": "environment", "cn": "环境"},
+            {"en": "adopt", "cn": "收养; 采用; 批准"},
+            {"en": "select", "cn": "选择; 精选的"},
+            {"en": "glory", "cn": "光荣; 荣誉"},
+            {"en": "reconcile", "cn": "使和解; 使一致"},
+            {"en": "prime", "cn": "首要的; 最好的; 全盛期"},
+            {"en": "realistic", "cn": "现实的; 逼真的"},
+            {"en": "delicate", "cn": "易碎的; 微妙的"},
+            {"en": "warmth", "cn": "暖和; 热情"},
+            {"en": "loosen", "cn": "解开; 放松"},
+            {"en": "medal", "cn": "奖牌; 勋章"},
+            {"en": "filter", "cn": "过滤; 滤器"},
+            {"en": "spill", "cn": "溢出; 洒落"},
+            {"en": "split", "cn": "分裂; 撕裂"},
+            {"en": "tidy", "cn": "整齐的; 整洁"},
+            {"en": "hollow", "cn": "空的; 沉闷的; 虚伪的"},
+            {"en": "admission", "cn": "准许进入; 承认; 入场费"},
+            {"en": "museum", "cn": "博物馆"},
+            {"en": "responsible", "cn": "负责的; 有责任感的"},
+            {"en": "furnace", "cn": "火炉; 熔炉"},
+            {"en": "curriculum", "cn": "课程"},
+            {"en": "ski", "cn": "滑雪"},
+            {"en": "surf", "cn": "冲浪; 上网"},
+            {"en": "tax", "cn": "税; 负担"},
+            {"en": "theory", "cn": "理论; 学说"},
+            {"en": "evaluate", "cn": "评价; 估价"},
+            {"en": "interview", "cn": "面试; 采访"},
+            {"en": "candidate", "cn": "候选人; 求职者"},
+            {"en": "contact", "cn": "联系; 接触"},
+            {"en": "puzzle", "cn": "谜; 使困惑"},
+            {"en": "saying", "cn": "谚语; 俗话"},
+            {"en": "treatment", "cn": "治疗; 对待"},
+            {"en": "consult", "cn": "咨询; 商议; 查阅"},
+            {"en": "tutor", "cn": "导师; 家庭教师"},
+            {"en": "distinct", "cn": "独特的; 清楚的"},
+            {"en": "estate", "cn": "地产; 庄园; 财产"},
+            {"en": "extreme", "cn": "极度的; 极端的"},
+            {"en": "illustrate", "cn": "说明; 举例说明"},
+            {"en": "resume", "cn": "简历; 重新开始"},
+            {"en": "potential", "cn": "潜在的; 潜力"},
+            {"en": "response", "cn": "回答; 反应"},
+            {"en": "profession", "cn": "职业; 同行"},
+            {"en": "worthy", "cn": "值得的; 可尊敬的"},
+            {"en": "lobby", "cn": "大厅; 游说"},
+            {"en": "workshop", "cn": "车间; 研讨会"},
+            {"en": "confess", "cn": "坦白; 承认"},
+            {"en": "mill", "cn": "磨坊; 工厂"},
+            {"en": "authority", "cn": "权威; 官方; 权力"},
+            {"en": "mug", "cn": "大杯; 行凶抢劫"},
+            {"en": "summary", "cn": "摘要; 概要"},
+            {"en": "pat", "cn": "轻拍; 非常恰当的"},
+            {"en": "executive", "cn": "行政的; 主管"},
+            {"en": "folk", "cn": "人们; 亲属; 民间的"},
+            {"en": "flesh", "cn": "肉; 肉体"},
+            {"en": "supervise", "cn": "监督; 管理"},
+            {"en": "management", "cn": "管理; 管理层"},
+            {"en": "clause", "cn": "条款; 从句"},
+            {"en": "snap", "cn": "折断; 猛咬; 快照"},
+            {"en": "impose", "cn": "强加; 征税"},
+            {"en": "vessel", "cn": "船; 容器; 血管"},
+            {"en": "injection", "cn": "注射; 注入"},
+            {"en": "dive", "cn": "潜水; 俯冲"},
+            {"en": "avert", "cn": "避免; 转移(目光)"},
+            {"en": "perceive", "cn": "感知; 察觉"},
+            {"en": "character", "cn": "性格; 角色; 汉字"},
+            {"en": "diverse", "cn": "不同的; 多种多样的"},
+            {"en": "expand", "cn": "扩张; 膨胀"},
+            {"en": "confusion", "cn": "困惑; 混乱"},
+            {"en": "hostile", "cn": "敌意的"},
+            {"en": "assumption", "cn": "假定; 承担"},
+            {"en": "beneath", "cn": "在...下面"},
+            {"en": "employer", "cn": "雇主"},
+            {"en": "embarrass", "cn": "使尴尬"},
+            {"en": "invalid", "cn": "无效的; 病弱者"},
+            {"en": "ignorance", "cn": "无知"},
+            {"en": "bias", "cn": "偏见; 偏心"},
+            {"en": "lunar", "cn": "月亮的"},
+            {"en": "necessarily", "cn": "必要地; 必然地"},
+            {"en": "calendar", "cn": "日历"},
+            {"en": "furnish", "cn": "布置; 提供"},
+            {"en": "inclusive", "cn": "包括一切的"},
+            {"en": "cupboard", "cn": "碗橱"},
+            {"en": "anniversary", "cn": "周年纪念"},
+            {"en": "internal", "cn": "内部的; 国内的"},
+            {"en": "cancel", "cn": "取消; 抵消"},
+            {"en": "violent", "cn": "暴力的; 猛烈的"},
+            {"en": "reservation", "cn": "预订; 保留"},
+            {"en": "kindness", "cn": "仁慈; 好意"},
+            {"en": "campaign", "cn": "运动; 战役; 竞选"},
+            {"en": "contract", "cn": "合同; 收缩; 感染"},
+            {"en": "discard", "cn": "抛弃; 丢弃"},
+            {"en": "stereotype", "cn": "刻板印象; 陈规"},
+            {"en": "enhance", "cn": "提高; 增强"},
+            {"en": "reinforce", "cn": "加强; 增援"},
+            {"en": "peer", "cn": "同龄人; 盯着看"},
+            {"en": "fundamental", "cn": "基本的; 根本的"},
+            {"en": "contrary", "cn": "相反的"},
+            {"en": "shift", "cn": "转移; 转变; 轮班"},
+            {"en": "stem", "cn": "茎; 起源于(from)"},
+            {"en": "rid", "cn": "摆脱; 去除"},
+            {"en": "permanent", "cn": "永久的; 固定的"},
+            {"en": "herd", "cn": "兽群; 牧群"},
+            {"en": "heap", "cn": "一堆; 大量"},
+            {"en": "electrical", "cn": "电的"},
+            {"en": "beam", "cn": "光束; 梁; 面露喜色"},
+            {"en": "scarcely", "cn": "几乎不; 刚刚"},
+            {"en": "contrast", "cn": "对比; 反差"},
+            {"en": "nourish", "cn": "滋养; 养育"},
+            {"en": "recovery", "cn": "恢复; 痊愈"},
+            {"en": "retreat", "cn": "撤退; 退缩"},
+            {"en": "participant", "cn": "参与者"},
+            {"en": "readily", "cn": "乐意地; 容易地"},
+            {"en": "approve", "cn": "赞成; 批准"},
+            {"en": "confirm", "cn": "证实; 确认"},
+            {"en": "accuse", "cn": "指控; 指责"},
+            {"en": "thrill", "cn": "兴奋; 激动"},
+            {"en": "application", "cn": "申请; 应用"},
+            {"en": "generous", "cn": "慷慨的; 大方的"},
+            {"en": "depress", "cn": "使沮丧; 萧条"},
+            {"en": "selfish", "cn": "自私的"},
+            {"en": "democratic", "cn": "民主的"},
+            {"en": "evolution", "cn": "进化; 演变"},
+            {"en": "bloody", "cn": "流血的; 该死的"},
+            {"en": "manual", "cn": "手工的; 手册"},
+            {"en": "temporary", "cn": "暂时的"},
+            {"en": "unfortunately", "cn": "不幸地"},
+            {"en": "assure", "cn": "使确信; 保证"},
+            {"en": "swift", "cn": "迅速的; 敏捷的"},
+            {"en": "contaminate", "cn": "污染"},
+            {"en": "amateur", "cn": "业余爱好者; 外行的"},
+            {"en": "hazard", "cn": "危险; 冒险"},
+            {"en": "continual", "cn": "频繁的; 不间断的"},
+            {"en": "lean", "cn": "倾斜; 瘦的"},
+            {"en": "betray", "cn": "背叛; 泄露"},
+            {"en": "battery", "cn": "电池; 排炮"},
+            {"en": "atmosphere", "cn": "大气; 气氛"},
+            {"en": "signify", "cn": "表示; 预示"},
+            {"en": "minimize", "cn": "最小化"},
+            {"en": "obvious", "cn": "明显的"},
+            {"en": "division", "cn": "分开; 部门; 除法"},
+            {"en": "boast", "cn": "夸耀; 自吹自擂"},
+            {"en": "inherit", "cn": "继承"},
+            {"en": "rescue", "cn": "营救; 救援"},
+            {"en": "invest", "cn": "投资; 投入"},
+            {"en": "depict", "cn": "描绘; 描述"}
+        ];
+
+        let currentIndex = 0;
+        let correctCount = 0;
+        let totalAttempts = 0;
+        let currentStreak = 0;
+        let learnedWords = new Set();
+        let gameMode = 'flashcard';
+        let shuffledVocabulary = [];
+        let isShuffled = false;
+        let filteredVocabulary = [];
+
+        // 初始化
+        function initGame() {
+            filteredVocabulary = [...vocabulary];
+            shuffledVocabulary = [...filteredVocabulary];
+            if(isShuffled) shuffleArray(shuffledVocabulary);
+            currentIndex = 0;
+            updateStats();
+            loadWord();
+        }
+
+        // 洗牌算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 搜索逻辑
+        function handleSearch() {
+            const term = document.getElementById('searchBox').value.trim().toLowerCase();
+            if(!term) {
+                filteredVocabulary = [...vocabulary];
+            } else {
+                filteredVocabulary = vocabulary.filter(w => 
+                    w.en.toLowerCase().includes(term) || 
+                    w.cn.includes(term)
+                );
+            }
+            shuffledVocabulary = [...filteredVocabulary];
+            if(isShuffled) shuffleArray(shuffledVocabulary);
+            currentIndex = 0;
+            loadWord();
+            updateStats();
+        }
+
+        function toggleShuffle() {
+            isShuffled = !isShuffled;
+            document.getElementById('shuffleText').textContent = isShuffled ? '顺序' : '随机';
+            shuffledVocabulary = [...filteredVocabulary];
+            if(isShuffled) shuffleArray(shuffledVocabulary);
+            currentIndex = 0;
+            loadWord();
+            updateStats();
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            loadWord();
+        }
+
+        function loadWord() {
+            const area = document.getElementById('gameArea');
+            if(shuffledVocabulary.length === 0) {
+                area.innerHTML = `<div class="word-card"><h3>未找到单词</h3></div>`;
+                return;
+            }
+            if(currentIndex >= shuffledVocabulary.length) {
+                area.innerHTML = `<div class="word-card"><h3>🎉 完成本组练习!</h3></div>`;
+                return;
+            }
+
+            const word = shuffledVocabulary[currentIndex];
+            // 根据不同模式渲染
+            if(gameMode === 'flashcard') {
+                area.innerHTML = `
+                    <div class="word-card">
+                        <div class="word-english">${word.en}</div>
+                        <div class="word-chinese">${word.cn}</div>
+                    </div>`;
+            } else if(gameMode === 'choice' || gameMode === 'match') {
+                const options = generateOptions(word);
+                area.innerHTML = `
+                    <div class="word-card">
+                        <div class="word-english">${word.en}</div>
+                        ${gameMode === 'match' ? '<p>选择中文含义:</p>' : ''}
+                    </div>
+                    <div class="options">
+                        ${options.map(opt => 
+                            `<button class="option-btn" onclick="checkAnswer('${opt.replace(/'/g, "\\'")}', '${word.cn.replace(/'/g, "\\'")}', this)">${opt}</button>`
+                        ).join('')}
+                    </div>
+                    <div id="feedback"></div>`;
+            } else if(gameMode === 'typing') {
+                area.innerHTML = `
+                    <div class="word-card"><div class="word-chinese">${word.cn}</div></div>
+                    <div class="input-area">
+                        <input type="text" id="typingInput" placeholder="输入英文单词..." onkeypress="if(event.key==='Enter') checkTyping('${word.en}')">
+                    </div>
+                    <div id="feedback"></div>`;
+                setTimeout(() => document.getElementById('typingInput').focus(), 100);
+            }
+        }
+
+        // 生成干扰项 (修复死循环BUG: 必须从完整词库取词)
+        function generateOptions(correctWord) {
+            let options = [correctWord.cn];
+            let attempts = 0;
+            while(options.length < 4 && attempts < 100) {
+                const rand = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                if(!options.includes(rand.cn) && rand.en !== correctWord.en) {
+                    options.push(rand.cn);
+                }
+                attempts++;
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function checkAnswer(selected, correct, btn) {
+            const feedback = document.getElementById('feedback');
+            totalAttempts++;
+            if(selected === correct) {
+                correctCount++;
+                currentStreak++;
+                learnedWords.add(shuffledVocabulary[currentIndex].en);
+                btn.classList.add('correct');
+                feedback.innerHTML = `<div class="feedback correct">✅ 正确!</div>`;
+                setTimeout(nextWord, 800);
+            } else {
+                currentStreak = 0;
+                btn.classList.add('wrong');
+                feedback.innerHTML = `<div class="feedback wrong">❌ 错误! 正确答案: ${correct}</div>`;
+                // 显示正确答案
+                document.querySelectorAll('.option-btn').forEach(b => {
+                    if(b.innerText === correct) b.classList.add('correct');
+                });
+            }
+            updateStats();
+        }
+
+        function checkTyping(correct) {
+            const input = document.getElementById('typingInput');
+            const val = input.value.trim().toLowerCase();
+            const feedback = document.getElementById('feedback');
+            totalAttempts++;
+            
+            if(val === correct.toLowerCase()) {
+                correctCount++;
+                currentStreak++;
+                learnedWords.add(shuffledVocabulary[currentIndex].en);
+                feedback.innerHTML = `<div class="feedback correct">✅ 拼写正确!</div>`;
+                input.disabled = true;
+                setTimeout(nextWord, 800);
+            } else {
+                currentStreak = 0;
+                feedback.innerHTML = `<div class="feedback wrong">❌ 错误! 正确拼写: ${correct}</div>`;
+            }
+            updateStats();
+        }
+
+        function nextWord() {
+            if(currentIndex < shuffledVocabulary.length - 1) {
+                currentIndex++;
+                loadWord();
+                updateStats();
+            } else {
+                alert("恭喜! 你已完成本轮所有单词。");
+            }
+        }
+
+        function previousWord() {
+            if(currentIndex > 0) {
+                currentIndex--;
+                loadWord();
+                updateStats();
+            }
+        }
+
+        function restartGame() {
+            if(confirm("确定要重置进度吗?")) {
+                correctCount = 0;
+                totalAttempts = 0;
+                currentStreak = 0;
+                learnedWords.clear();
+                initGame();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('progress').innerText = shuffledVocabulary.length ? currentIndex + 1 : 0;
+            document.getElementById('total').innerText = shuffledVocabulary.length;
+            const acc = totalAttempts === 0 ? 0 : Math.round((correctCount / totalAttempts) * 100);
+            document.getElementById('accuracy').innerText = acc;
+            document.getElementById('streak').innerText = currentStreak;
+            document.getElementById('learned').innerText = learnedWords.size;
+            const pct = shuffledVocabulary.length ? ((currentIndex + 1) / shuffledVocabulary.length) * 100 : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
