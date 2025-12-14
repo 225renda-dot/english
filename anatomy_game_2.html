@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人体解剖学记忆游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .mode-card {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .mode-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .mode-card p {
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .game-area {
+            padding: 30px;
+            display: none;
+        }
+
+        .game-area.active {
+            display: block;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .question-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .options {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 1.1em;
+        }
+
+        .option-btn:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .option-btn.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .flashcard {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard h3 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .flashcard p {
+            font-size: 1.2em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .matching-game {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .match-card {
+            background: white;
+            border: 3px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .match-card:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .match-card.selected {
+            background: #e7f3ff;
+            border-color: #2196F3;
+        }
+
+        .match-card.matched {
+            background: #d4edda;
+            border-color: #28a745;
+            cursor: default;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.wrong {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .fill-blank {
+            display: inline-block;
+            min-width: 150px;
+            border-bottom: 2px solid #667eea;
+            padding: 5px 10px;
+            margin: 0 5px;
+        }
+
+        .fill-blank input {
+            border: none;
+            outline: none;
+            font-size: 1.1em;
+            width: 100%;
+            background: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats {
+                gap: 15px;
+            }
+            
+            .game-modes {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .system-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .system-btn {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 1em;
+        }
+
+        .system-btn:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .system-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 人体解剖学记忆游戏</h1>
+            <p>通过游戏快速掌握人体解剖知识</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>答对：</span>
+                    <span id="correctCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>答错：</span>
+                    <span id="wrongCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>正确率：</span>
+                    <span id="accuracy">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="mainMenu" class="game-modes">
+            <div class="mode-card" onclick="startMode('quiz')">
+                <h3>📝 选择题模式</h3>
+                <p>通过选择题测试你的知识掌握程度</p>
+            </div>
+            <div class="mode-card" onclick="startMode('flashcard')">
+                <h3>🎴 记忆卡片</h3>
+                <p>快速浏览和记忆重要知识点</p>
+            </div>
+            <div class="mode-card" onclick="startMode('matching')">
+                <h3>🔗 配对游戏</h3>
+                <p>将术语与其定义正确配对</p>
+            </div>
+            <div class="mode-card" onclick="startMode('fillblank')">
+                <h3>✍️ 填空题</h3>
+                <p>填写关键的解剖学术语</p>
+            </div>
+        </div>
+
+        <div id="quizGame" class="game-area">
+            <div class="system-selector" id="systemSelector"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="quizProgress"></div>
+            </div>
+            <div class="question-card" id="questionCard"></div>
+            <div class="feedback" id="quizFeedback"></div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="nextQuestion()">下一题</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">返回主菜单</button>
+            </div>
+        </div>
+
+        <div id="flashcardGame" class="game-area">
+            <div class="system-selector" id="flashcardSystemSelector"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="flashcardProgress"></div>
+            </div>
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-front">
+                    <h3 id="flashcardQuestion"></h3>
+                    <p style="color: #999; margin-top: 20px;">点击翻转查看答案</p>
+                </div>
+                <div class="flashcard-back">
+                    <h3>答案</h3>
+                    <p id="flashcardAnswer"></p>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="nextFlashcard()">下一张</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">返回主菜单</button>
+            </div>
+        </div>
+
+        <div id="matchingGame" class="game-area">
+            <h2 style="margin-bottom: 20px;">点击两张卡片进行配对</h2>
+            <div class="matching-game" id="matchingGrid"></div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="resetMatching()">重新开始</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">返回主菜单</button>
+            </div>
+        </div>
+
+        <div id="fillblankGame" class="game-area">
+            <div class="system-selector" id="fillblankSystemSelector"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="fillblankProgress"></div>
+            </div>
+            <div class="question-card" id="fillblankCard"></div>
+            <div class="feedback" id="fillblankFeedback"></div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="checkFillBlank()">检查答案</button>
+                <button class="btn btn-primary" onclick="nextFillBlank()">下一题</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">返回主菜单</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const anatomyData = {
+            骨骼系统: {
+                quiz: [
+                    {
+                        question: "人体共有多少块骨骼？",
+                        options: ["196块", "206块", "216块", "226块"],
+                        correct: 1,
+                        explanation: "成人骨骼系统由206块骨骼组成"
+                    },
+                    {
+                        question: "颅骨共有多少块？",
+                        options: ["21块", "22块", "23块", "24块"],
+                        correct: 2,
+                        explanation: "颅骨共23块，包括脑颅和面颅"
+                    },
+                    {
+                        question: "脊柱共有多少节椎骨？",
+                        options: ["24节", "26节", "31节", "33节"],
+                        correct: 0,
+                        explanation: "脊柱由24节椎骨组成：颈椎7个，胸椎12个，腰椎5个"
+                    },
+                    {
+                        question: "第七颈椎的特点是什么？",
+                        options: ["无椎体", "有齿突", "棘突特长且不分叉", "椎孔最大"],
+                        correct: 2,
+                        explanation: "第七颈椎又称隆椎，其棘突特长且末端不分叉，是椎骨计数的标志"
+                    },
+                    {
+                        question: "肋骨共有多少对？",
+                        options: ["10对", "11对", "12对", "13对"],
+                        correct: 2,
+                        explanation: "肋骨共12对，其中1-7肋为真肋，8-10肋为假肋，11-12肋为浮肋"
+                    },
+                    {
+                        question: "下列哪个不是长骨？",
+                        options: ["股骨", "肱骨", "椎骨", "桡骨"],
+                        correct: 2,
+                        explanation: "椎骨属于不规则骨，股骨、肱骨、桡骨都是长骨"
+                    },
+                    {
+                        question: "颅骨中唯一能活动的骨是？",
+                        options: ["上颌骨", "下颌骨", "颧骨", "鼻骨"],
+                        correct: 1,
+                        explanation: "下颌骨是颅骨中唯一能活动的骨，通过颞下颌关节与颅骨相连"
+                    },
+                    {
+                        question: "髌骨位于哪里？",
+                        options: ["肘关节", "膝关节", "踝关节", "腕关节"],
+                        correct: 1,
+                        explanation: "髌骨位于股四头肌腱内，是膝关节的重要组成部分"
+                    }
+                ],
+                flashcards: [
+                    { question: "人体骨骼总数", answer: "成人206块骨骼。分为：颅骨23块、躯干骨51块（24椎骨+1胸骨+1骶骨+1尾骨+12对肋）、四肢骨126块" },
+                    { question: "骨的分类（按形态）", answer: "①长骨：如股骨、肱骨、桡骨、尺骨 ②短骨：如腕骨、跗骨 ③扁骨：如肩胛骨、颅盖骨 ④不规则骨：如椎骨、髋骨" },
+                    { question: "骨的组成", answer: "骨细胞、骨基质、骨膜纤维。内部：骨松质；外部：骨密质" },
+                    { question: "颅骨的组成（23块）", answer: "脑颅8块：不成对4（额骨、枕骨、筛骨、蝶骨）+成对2（颞骨×2、顶骨×2）；面颅15块，其中下颌骨为唯一活动的颅骨" },
+                    { question: "颅的重要结构", answer: "颅盖：由额、顶、枕、颞骨构成顶部；颅前窝：与额骨有关；颅中窝：与蝶骨有关；颅后窝：与枕骨有关" },
+                    { question: "椎骨的基本结构", answer: "①椎体（1个）：短圆柱状，主要承重部分 ②椎弓（1个）③椎孔：椎体和椎弓围成，24个椎孔连成椎管 ④7个突：1棘突+2横突+4关节突 ⑤椎间孔：相邻椎骨的上下切迹围成" },
+                    { question: "脊柱的组成", answer: "24节椎骨：颈椎7个（C1-C7）、胸椎12个（T1-T12）、腰椎5个（L1-L5）。另有骶骨1块、尾骨1块" },
+                    { question: "第一颈椎-寰椎", answer: "无椎体，呈环状，支撑颅骨，允许点头运动" },
+                    { question: "第二颈椎-枢椎", answer: "有齿突向上伸入寰椎，形成寰枢关节，是头部旋转的轴心" },
+                    { question: "第七颈椎-隆椎", answer: "棘突特别长，末端不分叉，体表易触及，是椎骨计数的重要标志" },
+                    { question: "椎骨的特殊结构", answer: "颈椎：椎体小，椎孔大，横突有横突孔；胸椎：椎体中等，有肋凹；腰椎：椎体最大，棘突宽短呈板状" },
+                    { question: "肋骨（12对）", answer: "①真肋（1-7肋）：直接与胸骨相连 ②假肋（8-10肋）：借肋软骨形成肋弓连于胸骨 ③浮肋（11-12肋）：前端游离。肋骨内侧有肋沟，肋间神经血管行走其中" },
+                    { question: "胸骨的组成", answer: "①胸骨柄：上端宽，呈凸角形 ②胸骨体：中间部分 ③剑突：下端，个体差异大" },
+                    { question: "上肢骨的组成", answer: "①肩带：肩胛骨+锁骨（锁骨外侧端为肩峰） ②自由上肢骨：肱骨、尺骨（内侧）、桡骨（外侧）、腕骨8块、掌骨5块、指骨14块" },
+                    { question: "腕骨（8块）", answer: "近侧列（由桡侧向尺侧）：舟骨、月骨、三角骨、豌豆骨；远侧列：大多角骨、小多角骨、头状骨、钩骨" },
+                    { question: "下肢骨的组成", answer: "①髋骨（髂骨+坐骨+耻骨融合）：构成骨盆 ②自由下肢骨：股骨（人体最长骨）、髌骨（膝关节籽骨）、胫骨（内侧）、腓骨（外侧）、跗骨7块、跖骨5块、趾骨14块" },
+                    { question: "跗骨（7块）", answer: "距骨、跟骨、舟骨、内侧楔骨、中间楔骨、外侧楔骨、骰骨" },
+                    { question: "骨盆的组成", answer: "由髋骨（左右各1）、骶骨、尾骨共同构成。分为大骨盆（假骨盆）和小骨盆（真骨盆）" },
+                    { question: "股骨的特点", answer: "人体最长、最粗的长骨。上端有股骨头（与髋臼形成髋关节）、股骨颈（骨折好发部位）、大转子、小转子；下端有内外侧髁" },
+                    { question: "髌骨", answer: "位于股四头肌腱内的籽骨，是膝关节的重要组成部分，参与膝关节屈伸运动" },
+                    { question: "胫骨和腓骨", answer: "胫骨：小腿内侧，粗大，承重；腓骨：小腿外侧，细长，不承重。两骨之间有骨间膜连接" },
+                    { question: "脊柱的生理弯曲", answer: "颈曲（凸向前）、胸曲（凸向后）、腰曲（凸向前）、骶曲（凸向后）。前凸后凸交替，增加弹性和稳定性" },
+                    { question: "胸廓的组成", answer: "由胸椎、肋骨、胸骨及其连接共同围成。保护胸腔内脏器，参与呼吸运动" }
+                ],
+                matching: [
+                    { term: "额骨", definition: "构成颅盖前部的骨" },
+                    { term: "颞骨", definition: "脑颅的成对骨，位于颅侧面" },
+                    { term: "椎体", definition: "椎骨的主要承重部分" },
+                    { term: "棘突", definition: "从椎弓向后伸出的突起" },
+                    { term: "真肋", definition: "1-7肋，直接与胸骨相连" },
+                    { term: "浮肋", definition: "11-12肋，前端游离" }
+                ],
+                fillblank: [
+                    { question: "人体共有___块骨骼", answer: "206" },
+                    { question: "颅骨中唯一能活动的骨是___", answer: "下颌骨" },
+                    { question: "脊柱有___个颈椎", answer: "7" },
+                    { question: "第七颈椎又称___椎", answer: "隆" },
+                    { question: "肋骨共___对", answer: "12" }
+                ]
+            },
+            消化系统: {
+                quiz: [
+                    {
+                        question: "食管有几个狭窄？",
+                        options: ["2个", "3个", "4个", "5个"],
+                        correct: 1,
+                        explanation: "食管有3个狭窄：起始处、与左主支气管交叉处、穿膈的食管裂孔处"
+                    },
+                    {
+                        question: "食管第一狭窄距中切牙约多少厘米？",
+                        options: ["15cm", "20cm", "25cm", "30cm"],
+                        correct: 0,
+                        explanation: "食管第一狭窄在第6颈椎下缘平面，距中切牙约15cm"
+                    },
+                    {
+                        question: "胃分为几个部分？",
+                        options: ["2部", "3部", "4部", "5部"],
+                        correct: 2,
+                        explanation: "胃分为4部：贲门部、胃底、胃体、幽门部"
+                    },
+                    {
+                        question: "十二指肠的形状是？",
+                        options: ["直管状", "C形", "S形", "螺旋形"],
+                        correct: 1,
+                        explanation: "十二指肠呈C形或马蹄铁形，包绕胰头"
+                    },
+                    {
+                        question: "阑尾根部位于盲肠的哪个位置？",
+                        options: ["前内侧壁", "后外侧壁", "前外侧壁", "后内侧壁"],
+                        correct: 1,
+                        explanation: "阑尾根部位于盲肠后外侧壁，有3条结肠带集中于此"
+                    },
+                    {
+                        question: "肝脏位于人体的哪个区域？",
+                        options: ["左季肋区", "右季肋区和腹上区", "脐区", "右腰区"],
+                        correct: 1,
+                        explanation: "肝脏位于右季肋区和腹上区，小部分位于左季肋区"
+                    },
+                    {
+                        question: "胰腺是人体第几大消化腺？",
+                        options: ["第一大", "第二大", "第三大", "第四大"],
+                        correct: 1,
+                        explanation: "胰腺是人体第二大消化腺，肝脏是最大的消化腺"
+                    },
+                    {
+                        question: "胰岛β细胞分泌什么激素？",
+                        options: ["胰岛素", "胰高血糖素", "生长抑素", "肾上腺素"],
+                        correct: 0,
+                        explanation: "胰岛β细胞分泌胰岛素，调节血糖降低"
+                    }
+                ],
+                flashcards: [
+                    { question: "消化系统的组成", answer: "①消化管：口腔→咽→食管→胃→小肠（十二指肠、空肠、回肠）→大肠（盲肠、阑尾、结肠、直肠、肛管）②消化腺：唾液腺、肝、胰及消化管壁小腺体" },
+                    { question: "上消化道和下消化道", answer: "上消化道：口腔→十二指肠；下消化道：空肠以下（空肠、回肠、大肠）" },
+                    { question: "食管的位置和长度", answer: "前后扁平的肌性管，位于气管后方，起自咽（第6颈椎水平），止于胃（第11胸椎），长约25cm" },
+                    { question: "食管的三个狭窄", answer: "①起始处（第6颈椎下缘，距中切牙15cm）②左主支气管交叉处（第4-5胸椎，距切牙25cm）③穿膈的食管裂孔处（第11胸椎，距切牙40cm）——这三处是食管异物易滞留和食管癌好发部位" },
+                    { question: "食管的肌层特点", answer: "上1/3：骨骼肌；中1/3：骨骼肌+平滑肌混合；下1/3：平滑肌。食管下端复层鳞状上皮与胃的单层柱状上皮相接，是食管癌好发部位" },
+                    { question: "胃的位置", answer: "大部分位于左季肋区，小部分位于腹上区。前壁：右侧半被肝覆盖，左侧上部被膈和胸壁覆盖，下部直接接触前腹壁（溃疡穿孔区）" },
+                    { question: "胃的分部（4部）", answer: "①贲门部：与食管相续的入口 ②胃底：贲门平面向上后偏左鼓出部分 ③胃体：胃底和幽门部之间 ④幽门部：最靠近幽门，分为幽门窦和幽门管" },
+                    { question: "胃的形态特征", answer: "上缘凹陷称胃小弯，下缘凸起称胃大弯。空虚时呈管状，充满时呈囊状或梨形" },
+                    { question: "胃壁的结构（4层）", answer: "①黏膜层：有胃腺分泌胃液 ②黏膜下层：疏松结缔组织 ③肌层：内斜、中环、外纵三层平滑肌 ④浆膜（外膜）：腹膜脏层" },
+                    { question: "十二指肠的形态和位置", answer: "长25-30cm，呈C形（马蹄铁形）包绕胰头。起自胃幽门，下端在第2腰椎体左侧续于空肠" },
+                    { question: "十二指肠的四部", answer: "①上部（球部）：起自幽门，走向右后方至胆囊颈后下方 ②降部：沿脊椎右侧下降，有十二指肠乳头（胆总管和胰管开口）③水平部（下部）：向左横过第3腰椎前方 ④升部：向上至第2腰椎左侧" },
+                    { question: "小肠的组成和长度", answer: "十二指肠（25-30cm）、空肠和回肠（共5-7米）。空肠主要位于左上腹，回肠主要位于右下腹和盆腔" },
+                    { question: "大肠的组成", answer: "盲肠→结肠（升结肠、横结肠、降结肠、乙状结肠）→直肠→肛管。长约1.5米，比小肠粗" },
+                    { question: "大肠的特征", answer: "①结肠带：三条纵行肌带 ②结肠袋：肌带间的囊状膨出 ③肠脂垂：浆膜下脂肪突起。这三个特征是大肠与小肠的主要区别" },
+                    { question: "阑尾的位置和特点", answer: "细长管状器官，长6-8cm，根部位于盲肠后外侧壁（三条结肠带集中处），尖端游离。位置变异大，最常见是回盲部位" },
+                    { question: "阑尾的体表投影-麦氏点", answer: "脐与右髂前上棘连线的外1/3交点处，是阑尾炎压痛点" },
+                    { question: "直肠的位置和特点", answer: "大肠末段，长约15cm，位于骨盆腔。分为盆部（位于骶骨前方）和会阴部（穿盆膈形成肛管）。有三个侧弯和三个前后弯曲" },
+                    { question: "肝脏-最大消化腺", answer: "位于右季肋区和腹上区，小部分在左季肋区。重约1200-1600g，呈红褐色，质软而脆" },
+                    { question: "肝的分叶", answer: "①膈面（上面）：被镰状韧带分为左右叶 ②脏面（下面）：借'H'形沟分为左叶、右叶、方叶（肝门前）、尾叶（肝门后）" },
+                    { question: "肝门", answer: "位于肝脏面中央的横沟，是肝动脉、肝静脉、肝管、神经、淋巴管出入肝的门户。结缔组织包裹这些结构形成肝蒂" },
+                    { question: "肝的功能", answer: "①分泌胆汁（主要功能）②解毒 ③糖原储存和调节血糖 ④合成蛋白质（白蛋白、凝血因子）⑤脂肪代谢 ⑥维生素储存" },
+                    { question: "肝外胆道系统", answer: "左肝管+右肝管→肝总管→（+胆囊管）→胆总管→十二指肠大乳头（与胰管汇合）" },
+                    { question: "胆囊的位置和功能", answer: "位于肝脏面肝门右侧的胆囊窝内。功能：储存和浓缩胆汁（可浓缩5-10倍），容量约40-70ml" },
+                    { question: "胆囊的分部", answer: "①胆囊底：宽大，朝向前下方，体表可触及 ②胆囊体：中间部分 ③胆囊颈：细窄，连胆囊管 ④胆囊管：与肝总管汇合成胆总管" },
+                    { question: "胆总管", answer: "长约7-8cm，由肝总管与胆囊管汇合而成，下降穿胰头，与胰管汇合后开口于十二指肠降部的大乳头" },
+                    { question: "胰腺-第二大消化腺", answer: "狭长灰红色腺体，横位于第1-2腰椎前方，长约12-15cm，重约80-100g。质地柔软，易损伤" },
+                    { question: "胰腺的分部（4部）", answer: "①头：被十二指肠C形环包绕，右侧最膨大 ②颈：头体之间，肠系膜上动静脉从其前方跨过 ③体：中间最长部分 ④尾：左端，伸向脾门" },
+                    { question: "胰腺的毗邻", answer: "前方：胃和网膜囊；后方：下腔静脉、腹主动脉、肠系膜上动静脉、左肾；右端：十二指肠；左端：脾门" },
+                    { question: "胰腺的双重功能", answer: "①外分泌：腺泡分泌胰液，经胰管→十二指肠，含消化酶 ②内分泌：胰岛分泌激素直接入血，调节血糖代谢" },
+                    { question: "胰岛的细胞类型和功能", answer: "①β细胞（B细胞，70%）：分泌胰岛素，降低血糖 ②α细胞（A细胞，20%）：分泌胰高血糖素，升高血糖 ③δ细胞（D细胞，<10%）：分泌生长抑素，抑制胰岛素和胰高血糖素" },
+                    { question: "唾液腺", answer: "①腮腺：最大，位于下颌支后方，分泌浆液性唾液 ②下颌下腺：混合性，位于下颌下三角 ③舌下腺：最小，混合性，位于口底" },
+                    { question: "咽的分部", answer: "①鼻咽：上部，与鼻腔相通 ②口咽：中部，与口腔相通 ③喉咽：下部，向下续食管。咽既是消化道又是呼吸道的共同通路" }
+                ],
+                matching: [
+                    { term: "贲门", definition: "胃与食管相续的入口" },
+                    { term: "幽门", definition: "胃连接十二指肠的出口" },
+                    { term: "胃底", definition: "贲门平面向上后偏左鼓出的部分" },
+                    { term: "阑尾", definition: "盲肠后外侧壁延伸的细管状器官" },
+                    { term: "肝门", definition: "肝脏血管等出入的门户" },
+                    { term: "胰岛", definition: "胰腺的内分泌部分" }
+                ],
+                fillblank: [
+                    { question: "食管有___个狭窄", answer: "3" },
+                    { question: "胃分为___部", answer: "4" },
+                    { question: "十二指肠呈___形包绕胰头", answer: "C" },
+                    { question: "___是人体最大的消化腺", answer: "肝脏" },
+                    { question: "胰腺是人体第___大消化腺", answer: "二" }
+                ]
+            },
+            呼吸系统: {
+                quiz: [
+                    {
+                        question: "左肺分为几叶？",
+                        options: ["1叶", "2叶", "3叶", "4叶"],
+                        correct: 1,
+                        explanation: "左肺分为2叶：上叶和下叶"
+                    },
+                    {
+                        question: "右肺分为几叶？",
+                        options: ["1叶", "2叶", "3叶", "4叶"],
+                        correct: 2,
+                        explanation: "右肺分为3叶：上叶、中叶和下叶"
+                    },
+                    {
+                        question: "左肺动脉分为几支？",
+                        options: ["1支", "2支", "3支", "4支"],
+                        correct: 1,
+                        explanation: "左肺动脉较短，分为2支"
+                    },
+                    {
+                        question: "右肺动脉分为几支？",
+                        options: ["1支", "2支", "3支", "4支"],
+                        correct: 2,
+                        explanation: "右肺动脉较长，分为3支"
+                    },
+                    {
+                        question: "胸膜腔内的压力是？",
+                        options: ["正压", "负压", "零压", "变压"],
+                        correct: 1,
+                        explanation: "胸膜腔内为负压，有利于肺的扩张"
+                    },
+                    {
+                        question: "肋膈隐窝是哪两层胸膜围成的？",
+                        options: ["脏层与脏层", "壁层与壁层", "脏层与壁层", "都不是"],
+                        correct: 1,
+                        explanation: "肋膈隐窝由胸膜壁层围成，是胸膜腔的最低处"
+                    },
+                    {
+                        question: "呼吸系统的主要功能是？",
+                        options: ["消化", "气体交换", "循环", "排泄"],
+                        correct: 1,
+                        explanation: "呼吸系统的主要功能是进行气体交换，吸入氧气，排出二氧化碳"
+                    },
+                    {
+                        question: "肺的营养性血管是？",
+                        options: ["肺动脉", "肺静脉", "支气管动静脉", "冠状动脉"],
+                        correct: 2,
+                        explanation: "肺的营养性血管是支气管动静脉，功能性血管是肺动脉和肺静脉"
+                    }
+                ],
+                flashcards: [
+                    { question: "呼吸系统的组成", answer: "①呼吸道：鼻、咽、喉、气管、支气管（上呼吸道：鼻、咽、喉；下呼吸道：气管、支气管）②肺：气体交换的器官" },
+                    { question: "鼻腔的功能", answer: "①加温加湿吸入空气 ②过滤空气中的尘埃和细菌（鼻毛和黏液）③嗅觉功能（嗅区）④共鸣作用" },
+                    { question: "鼻旁窦", answer: "围绕鼻腔周围骨内的含气空腔，包括：上颌窦、额窦、筛窦、蝶窦。功能：减轻颅骨重量，产生共鸣，调节吸入空气温湿度" },
+                    { question: "喉的位置和组成", answer: "位于颈前部，第4-6颈椎前方。由喉软骨（甲状软骨、环状软骨、会厌软骨等）、韧带和肌肉组成。既是呼吸道又是发音器官" },
+                    { question: "喉的重要结构", answer: "①会厌软骨：吞咽时盖住喉口，防止食物进入气管 ②声带：发声器官，位于喉腔中部 ③喉腔：分喉前庭、喉中间腔、声门下腔" },
+                    { question: "气管的位置和特点", answer: "长10-13cm，位于食管前方，自环状软骨下缘至第4-5胸椎处分为左右主支气管。由16-20个C形软骨环支撑，后壁扁平与食管相贴" },
+                    { question: "左右主支气管的区别", answer: "①右主支气管：粗短直（长约2.5cm），与气管纵轴夹角小，异物易进入 ②左主支气管：细长斜（长约5cm），与气管纵轴夹角大" },
+                    { question: "支气管树", answer: "气管→主支气管→叶支气管→段支气管→小支气管→细支气管→终末细支气管→呼吸性细支气管→肺泡管→肺泡囊→肺泡。肺泡是气体交换的场所" },
+                    { question: "肺的位置", answer: "位于胸腔内，左右各一，分别位于左右胸腔，纵隔两侧。被胸膜包裹，与外界相通" },
+                    { question: "肺的形态", answer: "①肺尖：钝圆，高出锁骨内侧1/3段上方2-3cm ②肺底（膈面）：凹陷，对向膈肌 ③肋面：外凸，对向肋骨和肋间隙 ④内侧面（纵隔面）：凹陷，有肺门" },
+                    { question: "肺门和肺根", answer: "肺门：肺内侧面的凹陷，支气管、血管、神经、淋巴管出入处。肺根：出入肺门的这些结构被结缔组织包裹形成肺根，在肺门处" },
+                    { question: "左肺的特点", answer: "①分2叶：上叶、下叶（斜裂分隔）②有心切迹：前缘下部的凹陷，为心尖所占 ③左肺动脉分2支，较短 ④左肺较细长" },
+                    { question: "右肺的特点", answer: "①分3叶：上叶、中叶、下叶（斜裂和水平裂分隔）②无心切迹 ③右肺动脉分3支，较长 ④右肺较短宽" },
+                    { question: "肺叶和肺段", answer: "左肺2叶10段，右肺3叶10段。肺段是支气管肺段的简称，是肺内独立的结构和功能单位，有独立的支气管和血管支配" },
+                    { question: "肺的血管系统-双重循环", answer: "①功能性血管：肺动脉（运输静脉血到肺）、肺静脉（运输动脉血回心脏），参与气体交换 ②营养性血管：支气管动脉（供给肺组织营养）、支气管静脉（回流）" },
+                    { question: "肺动脉", answer: "起自右心室，在主动脉弓前方分为左右肺动脉。左肺动脉较短分2支，右肺动脉较长分3支。运输静脉血到肺泡进行气体交换" },
+                    { question: "肺静脉", answer: "左右各2条（共4条），起自肺门，运输含氧血回左心房。左肺静脉较短，右肺静脉较长" },
+                    { question: "肺泡", answer: "半球形小囊，直径约0.2mm，总数约3-4亿个，总面积约70㎡。肺泡壁很薄（0.2-0.5μm），有丰富的毛细血管网，是气体交换的场所" },
+                    { question: "胸膜", answer: "浆膜，分两层：①壁层胸膜：贴附胸壁、膈上面和纵隔 ②脏层胸膜：紧贴肺表面。两层在肺根处互相移行" },
+                    { question: "胸膜腔", answer: "壁层和脏层胸膜之间的密闭潜在腔隙，左右各一，互不相通。正常时呈负压（-3~-5mmHg），含少量浆液（约10-20ml），起润滑作用" },
+                    { question: "胸膜隐窝（3个）", answer: "①肋膈隐窝（最深、最重要）：肋胸膜与膈胸膜转折处，平静呼吸时肺不能伸入，是胸膜腔最低处，胸腔积液首先积聚处，穿刺抽液部位 ②肋纵隔隐窝 ③膈纵隔隐窝" },
+                    { question: "胸腔", answer: "由胸壁、膈和纵隔围成的腔。左右肺分别位于左右胸腔。注意区分：胸膜腔≠胸腔" },
+                    { question: "纵隔", answer: "两侧纵隔胸膜之间的区域，位于胸腔正中。分为上纵隔和下纵隔（前、中、后纵隔）。含心、大血管、气管、食管、胸腺等器官" },
+                    { question: "呼吸道的黏膜", answer: "表面覆盖假复层纤毛柱状上皮（除声带和会厌为复层鳞状上皮）。纤毛摆动由下向上，将黏液和异物排出体外" },
+                    { question: "呼吸运动", answer: "①吸气：膈肌收缩下降，肋间外肌收缩→胸腔扩大→肺扩张→气体进入 ②呼气：膈肌舒张上升，肋间外肌舒张→胸腔缩小→肺回缩→气体排出" },
+                    { question: "肺活量", answer: "尽力吸气后再尽力呼气所能呼出的气体量，成年男性约3500-4000ml，女性约2500-3000ml。反映呼吸功能" }
+                ],
+                matching: [
+                    { term: "肺尖", definition: "肺的上端，高出锁骨" },
+                    { term: "肺底", definition: "肺的下面，对向膈面" },
+                    { term: "肺门", definition: "肺内侧面的凹陷，血管神经出入" },
+                    { term: "胸膜腔", definition: "壁层和脏层胸膜围成的密闭腔隙" },
+                    { term: "肋膈隐窝", definition: "胸膜腔的最低处" },
+                    { term: "支气管", definition: "将空气输送到肺泡的管道" }
+                ],
+                fillblank: [
+                    { question: "左肺分为___叶", answer: "2" },
+                    { question: "右肺分为___叶", answer: "3" },
+                    { question: "胸膜腔内呈___压", answer: "负" },
+                    { question: "左肺动脉分___支", answer: "2" },
+                    { question: "右肺动脉分___支", answer: "3" }
+                ]
+            },
+            泌尿系统: {
+                quiz: [
+                    {
+                        question: "肾的上端平哪个椎体？",
+                        options: ["第10-11胸椎", "第11-12胸椎", "第1-2腰椎", "第2-3腰椎"],
+                        correct: 1,
+                        explanation: "肾的上端平第11-12胸椎体"
+                    },
+                    {
+                        question: "肾的下端平哪个椎体？",
+                        options: ["第1腰椎", "第2腰椎", "第3腰椎", "第4腰椎"],
+                        correct: 2,
+                        explanation: "肾的下端平第3腰椎"
+                    },
+                    {
+                        question: "输尿管有几个狭窄？",
+                        options: ["1个", "2个", "3个", "4个"],
+                        correct: 2,
+                        explanation: "输尿管有3个狭窄：起始部、与髂血管交叉处、壁内段"
+                    },
+                    {
+                        question: "输尿管的长度约为？",
+                        options: ["20cm", "25cm", "30cm", "35cm"],
+                        correct: 2,
+                        explanation: "输尿管长约30cm"
+                    },
+                    {
+                        question: "膀胱的正常容量是？",
+                        options: ["150-250ml", "250-350ml", "350-500ml", "500-650ml"],
+                        correct: 2,
+                        explanation: "膀胱的正常容量为350-500ml"
+                    },
+                    {
+                        question: "膀胱三角是由什么围成的？",
+                        options: ["三个输尿管口", "两个输尿管口和尿道内口", "膀胱底和两侧", "膀胱壁的三个角"],
+                        correct: 1,
+                        explanation: "膀胱三角由两个输尿管口和一个尿道内口围成"
+                    },
+                    {
+                        question: "右肾比左肾的位置？",
+                        options: ["略高", "略低", "相同", "不固定"],
+                        correct: 1,
+                        explanation: "右肾因肝脏的缘故位置略低于左肾"
+                    },
+                    {
+                        question: "肾的实质分为哪两层？",
+                        options: ["内层和外层", "上层和下层", "皮质和髓质", "前层和后层"],
+                        correct: 2,
+                        explanation: "肾实质分为皮质（浅层）和髓质（深层）"
+                    }
+                ],
+                flashcards: [
+                    { question: "泌尿系统的组成", answer: "肾（生成尿液）→输尿管（输送尿液）→膀胱（储存尿液）→尿道（排出尿液）" },
+                    { question: "肾的位置-腹膜外位器官", answer: "位于腹后壁，脊柱两侧，腹膜腔外。上端平第11-12胸椎，下端平第3腰椎。右肾因肝脏的缘故位置略低于左肾约1-2cm" },
+                    { question: "肾的位置固定", answer: "主要依靠：①肾筋膜（最重要）②肾脂肪囊 ③腹内压 ④邻近器官（肝、脾、十二指肠等）。肾下垂：固定装置薄弱时可发生" },
+                    { question: "肾的呼吸性移动", answer: "呼吸时上下移动约2-3cm，因此检查肾脏时需嘱患者屏住呼吸" },
+                    { question: "肾的形态", answer: "蚕豆形，左肾稍长。①上端：宽大，平第11胸椎，有肾上腺覆盖 ②下端：窄小，平第3腰椎 ③内缘：凹陷，中部有肾门 ④外缘：凸出 ⑤前后面：前面被腹膜部分覆盖，后面贴腹后壁肌肉" },
+                    { question: "肾门", answer: "位于肾内缘中部的凹陷，是肾动静脉、肾盂、神经、淋巴管出入的门户。从前向后排列：肾静脉、肾动脉、肾盂" },
+                    { question: "肾窦", answer: "肾门向肾内凹陷形成的腔，内含：肾大小盏、肾盂、血管、神经、脂肪组织" },
+                    { question: "肾实质的结构", answer: "①皮质（外层）：浅红褐色，由肾单位（肾小体+肾小管）和集合管、血管组成，厚约1cm ②髓质（内层）：深红色，呈锥体形（肾锥体），尖端为肾乳头，开口于肾小盏" },
+                    { question: "肾单位-功能单位", answer: "是肾脏的结构和功能基本单位，每个肾约有100-130万个。组成：①肾小体（肾小球+肾小囊）②肾小管（近端小管、细段、远端小管）。功能：滤过、重吸收、分泌，生成尿液" },
+                    { question: "肾盂和肾盏系统", answer: "肾小盏（8-12个）→肾大盏（2-3个）→肾盏（1个）→输尿管。肾盂是漏斗形扁囊，收集尿液，出肾门后变细续为输尿管" },
+                    { question: "肾的被膜（由内到外）", answer: "①纤维囊：紧贴肾实质 ②脂肪囊：脂肪组织，保护缓冲 ③肾筋膜：致密结缔组织，固定肾的主要结构，分前后两层包裹肾和肾上腺" },
+                    { question: "右肾的毗邻", answer: "前面：肝右叶、十二指肠降部、结肠右曲；后面：膈、腰方肌、腰大肌、第12肋斜过后面上部" },
+                    { question: "左肾的毗邻", answer: "前面：胃、脾、胰尾、空肠、结肠左曲；外侧缘：脾；后面：膈、腰方肌、腰大肌、第12肋斜过后面中部" },
+                    { question: "肾的动脉供应", answer: "肾动脉起自腹主动脉，在肾门处分为5支段动脉（顶段、上段、中段、下段、后段），属终动脉无侧支吻合，栓塞后相应区域梗死" },
+                    { question: "肾上腺", answer: "内分泌腺，左右各一，位于肾上端。左侧呈半月形，右侧呈三角形。分皮质（分泌糖皮质激素、盐皮质激素、性激素）和髓质（分泌肾上腺素、去甲肾上腺素）" },
+                    { question: "输尿管的位置和分段", answer: "长约25-30cm，起自肾盂，开口于膀胱底。分3段：①腹段：肾盂至骨盆入口 ②盆段：骨盆入口至膀胱 ③壁内段：穿膀胱壁的一段（1.5cm），斜穿防止尿液反流" },
+                    { question: "输尿管的三个狭窄", answer: "①起始部（肾盂输尿管移行处）②与髂血管交叉处（小骨盆入口处）③壁内段（穿膀胱壁处，最狭窄）——是结石易滞留处" },
+                    { question: "输尿管的三个交叉", answer: "①与生殖腺血管交叉（精巢/卵巢血管在输尿管前方跨过）②与髂外血管交叉（输尿管在髂总动脉分叉处跨过）③男性：与输精管交叉；女性：与子宫动脉交叉（输尿管在其下方通过，'桥下流水'）" },
+                    { question: "输尿管的生理弯曲", answer: "有两个生理弯曲：①腰曲：在腰部向内弯曲 ②骶曲：进入骨盆后向外弯曲。这些弯曲处也是结石易滞留部位" },
+                    { question: "膀胱的位置", answer: "位于小骨盆前部，耻骨联合后方。空虚时在盆腔内，充盈时（尿量>500ml）膨胀向上，顶部可高出耻骨联合，腹部可触及" },
+                    { question: "膀胱的形态", answer: "空虚时呈三角锥形，充盈时呈卵圆形。分4部：①尖：朝前上方，向上移行为脐正中韧带 ②底：朝后下方，三角形 ③体：尖与底之间 ④颈：底的下部，续尿道" },
+                    { question: "膀胱三角", answer: "位于膀胱底内面，由两个输尿管口和一个尿道内口连线围成的三角区。黏膜光滑无皱襞，紧贴肌层。是膀胱结核、肿瘤、炎症好发部位，也是最敏感部位" },
+                    { question: "膀胱的容量", answer: "正常容量350-500ml，最大可达800ml。膀胱充盈300-400ml时产生尿意，500-600ml时产生强烈尿意" },
+                    { question: "膀胱与腹膜的关系", answer: "①空虚时：腹膜外位器官（仅顶部和部分后壁被腹膜覆盖）②充盈时：膨胀部分成为腹膜间位器官。因此，膀胱充盈时耻骨上穿刺不会刺破腹膜" },
+                    { question: "膀胱的毗邻关系", answer: "男性：后方为精囊腺、输精管壶腹、直肠；女性：后方为子宫、阴道上部；下方均为盆膈和尿生殖膈" },
+                    { question: "男性尿道", answer: "长约16-22cm，起自膀胱的尿道内口，开口于尿道外口（阴茎头）。分3部：①前列腺部 ②膜部（最短最窄，不易扩张，导尿时易损伤）③海绵体部（最长）" },
+                    { question: "男性尿道的弯曲", answer: "有两个弯曲：①耻骨下弯：位于耻骨联合前下方，凹向后下，固定 ②耻骨前弯：位于耻骨联合下方，凹向前上，可因阴茎提起而消失。导尿时需先提起阴茎使此弯消失" },
+                    { question: "男性尿道的狭窄", answer: "3个狭窄：①尿道内口 ②膜部（最狭窄）③尿道外口。导尿时易损伤或受阻处" },
+                    { question: "女性尿道", answer: "短（约3-5cm）、直、宽，外口开口于阴道前庭。易发生逆行感染（如膀胱炎、肾盂肾炎），故女性应注意会阴卫生" },
+                    { question: "排尿反射", answer: "膀胱充盈→膀胱壁牵张感受器兴奋→传入神经→排尿中枢（骶髓2-4节）→传出神经→逼尿肌收缩+尿道括约肌舒张→排尿" }
+                ],
+                matching: [
+                    { term: "肾皮质", definition: "肾的浅层，红褐色，含肾单位" },
+                    { term: "肾髓质", definition: "肾的深层，锥形，色深" },
+                    { term: "肾盂", definition: "收集尿液，连接输尿管" },
+                    { term: "输尿管", definition: "连接肾盂和膀胱的管道" },
+                    { term: "膀胱三角", definition: "两输尿管口和尿道内口围成的区域" },
+                    { term: "尿道", definition: "排尿的通道" }
+                ],
+                fillblank: [
+                    { question: "肾的上端平第___胸椎", answer: "11-12" },
+                    { question: "输尿管长约___cm", answer: "30" },
+                    { question: "输尿管有___个狭窄", answer: "3" },
+                    { question: "膀胱容量为___ml", answer: "350-500" },
+                    { question: "右肾位置比左肾___", answer: "略低" }
+                ]
+            },
+            心血管系统: {
+                quiz: [
+                    {
+                        question: "心脏位于胸腔的哪个位置？",
+                        options: ["完全在左侧", "2/3在左侧，1/3在右侧", "完全在正中", "2/3在右侧，1/3在左侧"],
+                        correct: 1,
+                        explanation: "心脏2/3在正中矢状面的左侧，1/3在右侧"
+                    },
+                    {
+                        question: "心尖由哪个心室构成？",
+                        options: ["左心室", "右心室", "左心房", "右心房"],
+                        correct: 0,
+                        explanation: "心尖由左心室构成"
+                    },
+                    {
+                        question: "心底主要由哪个心房构成？",
+                        options: ["左心房", "右心房", "左心室", "右心室"],
+                        correct: 0,
+                        explanation: "心底主要由左心房构成"
+                    },
+                    {
+                        question: "心脏壁最厚的是？",
+                        options: ["左心房", "右心房", "左心室", "右心室"],
+                        correct: 2,
+                        explanation: "左心室壁最厚，是右心室的3倍"
+                    },
+                    {
+                        question: "肝门静脉长度约为？",
+                        options: ["4-6cm", "6-8cm", "8-10cm", "10-12cm"],
+                        correct: 1,
+                        explanation: "肝门静脉长6-8cm"
+                    },
+                    {
+                        question: "肝门静脉由哪两条静脉汇合而成？",
+                        options: ["肝静脉和脾静脉", "脾静脉和肠系膜上静脉", "门静脉和下腔静脉", "肝静脉和肠系膜下静脉"],
+                        correct: 1,
+                        explanation: "肝门静脉由脾静脉和肠系膜上静脉在胰颈后方汇合而成"
+                    },
+                    {
+                        question: "动脉壁中最厚的一层是？",
+                        options: ["内膜", "中膜", "外膜", "都一样厚"],
+                        correct: 1,
+                        explanation: "动脉的中膜最厚，大动脉以弹性纤维为主，中小动脉以平滑肌为主"
+                    },
+                    {
+                        question: "肺动脉干起自哪里？",
+                        options: ["左心室", "右心室", "左心房", "右心房"],
+                        correct: 1,
+                        explanation: "肺动脉干起自右心室的动脉圆锥"
+                    }
+                ],
+                flashcards: [
+                    { question: "心血管系统的组成", answer: "心脏、动脉、毛细血管、静脉。功能：运输营养物质、氧气、代谢废物，调节体温，参与免疫" },
+                    { question: "心脏的位置", answer: "位于胸腔纵隔，2/3在正中矢状面左侧，1/3在右侧。前方对胸骨2-6肋，大部分被肺和胸膜覆盖，小部分与胸前壁直接接触" },
+                    { question: "心脏的外形", answer: "前后略扁的圆锥形，如本人拳头大小，成人重约250-350g。近似倒置的梨形，尖朝左前下，底朝右后上" },
+                    { question: "心脏的各部组成", answer: "①心尖：由左心室构成，朝向左前下，位于左侧第5肋间隙锁骨中线内侧1-2cm处，可触及心尖搏动 ②心底：主要由左心房构成 ③前面：主要由右心室构成 ④膈面：主要由左心室和部分右心室构成 ⑤左缘：主要由左心室构成 ⑥右缘：由右心房构成 ⑦下缘：主要由右心室和少部分左心室构成" },
+                    { question: "心脏的四个腔", answer: "左心房、右心房、左心室、右心室。左右心房和心室之间有房室口相通，左右心之间被房室间隔和室间隔完全分隔" },
+                    { question: "右心房", answer: "最靠右的心腔，壁薄。接受上下腔静脉和冠状窦的静脉血。内有：①上腔静脉口 ②下腔静脉口 ③冠状窦口 ④右房室口（通右心室，有三尖瓣）⑤卵圆窝（房间隔，是胎儿期卵圆孔闭锁后的遗迹）" },
+                    { question: "右心室", answer: "最靠前的心腔，壁较厚。接受右心房的静脉血，泵入肺动脉。内有：①右房室口（有三尖瓣）②肺动脉口（有肺动脉瓣，三个半月瓣）③动脉圆锥（右心室流出道）④室间隔" },
+                    { question: "左心房", answer: "最靠后的心腔，壁薄。接受4条肺静脉的动脉血。内有：①4个肺静脉口（左右各2个）②左房室口（通左心室，有二尖瓣）" },
+                    { question: "左心室", answer: "壁最厚的心腔（约10-15mm，是右心室的3倍），承担体循环的泵血功能。内有：①左房室口（有二尖瓣）②主动脉口（有主动脉瓣，三个半月瓣）③发达的肉柱和乳头肌" },
+                    { question: "心壁的结构", answer: "由内向外三层：①心内膜：内皮及内皮下层，瓣膜由心内膜皱襞形成 ②心肌层：最厚，心房肌和心室肌，由心骨骼分隔不连续 ③心外膜：即心包脏层，浆膜" },
+                    { question: "心肌层的特点", answer: "①左心室壁最厚（10-15mm）②右心室壁中等（3-5mm）③心房壁薄（2-3mm）④肌纤维呈螺旋状排列，分内纵、中环、外斜三层，之间有丰富血管和结缔组织" },
+                    { question: "房室瓣", answer: "①二尖瓣（左房室瓣）：2个瓣叶（前、后瓣），位于左房室口 ②三尖瓣（右房室瓣）：3个瓣叶（前、后、隔侧瓣），位于右房室口。瓣膜借腱索连于乳头肌，防止血液反流" },
+                    { question: "动脉瓣", answer: "①主动脉瓣：3个半月形瓣膜，位于主动脉口 ②肺动脉瓣：3个半月形瓣膜，位于肺动脉口。心室收缩时开放，舒张时关闭，防止血液反流" },
+                    { question: "心骨骼", answer: "致密的纤维结缔组织环，围绕房室口和动脉口。作用：①支持和固定瓣膜 ②隔离心房肌和心室肌（两者不连续）③提供心肌附着点" },
+                    { question: "心包", answer: "包裹心脏的浆膜囊，分两层：①纤维心包（外层）：致密结缔组织，保护心脏 ②浆膜心包（内层）：分壁层（贴纤维心包）和脏层（即心外膜）。两层之间为心包腔" },
+                    { question: "心包腔", answer: "浆膜心包壁层和脏层之间的密闭潜在腔隙，含少量浆液（15-50ml），起润滑作用。心包积液可导致心脏压塞" },
+                    { question: "冠状动脉", answer: "供应心脏本身营养的动脉，起自主动脉根部。①左冠状动脉：分前室间支（下降）和旋支，供应左心室大部、左心房、室间隔前2/3 ②右冠状动脉：供应右心室、左心室后壁、室间隔后1/3、窦房结、房室结" },
+                    { question: "心的静脉", answer: "收集心肌的静脉血，大部分汇入冠状窦，开口于右心房。小部分直接开口于右心房的心最小静脉" },
+                    { question: "心传导系统", answer: "由特殊心肌纤维组成，产生和传导冲动。组成：窦房结（起搏点）→房室结→房室束（希氏束）→左右束支→浦肯野纤维。窦房结位于上腔静脉与右心房交界处" },
+                    { question: "体循环（大循环）", answer: "路径：左心室→主动脉→各级动脉→毛细血管网（物质交换）→各级静脉→上下腔静脉→右心房。功能：将动脉血送至全身组织器官，运回静脉血" },
+                    { question: "肺循环（小循环）", answer: "路径：右心室→肺动脉→肺部毛细血管网（气体交换）→肺静脉→左心房。功能：将静脉血送至肺进行气体交换，运回动脉血" },
+                    { question: "动脉壁的结构", answer: "由内向外三层：①内膜：单层扁平内皮细胞，光滑，减少血流阻力 ②中膜：最厚，大动脉含弹性纤维（弹性贮器作用），中小动脉含平滑肌（调节血流）③外膜：疏松结缔组织，含血管、神经" },
+                    { question: "动脉的分类", answer: "①大动脉（弹性动脉）：如主动脉、肺动脉，中膜富含弹性纤维 ②中动脉（肌性动脉）：如肱动脉、股动脉，中膜富含平滑肌 ③小动脉：直径<1mm，调节血流阻力 ④微动脉：内膜、薄中膜、外膜" },
+                    { question: "主动脉", answer: "体循环的动脉主干，起自左心室。分3段：①升主动脉：起自左心室，向右上行，有左右冠状动脉开口 ②主动脉弓：跨左主支气管，发出头臂干、左颈总动脉、左锁骨下动脉 ③降主动脉：分胸主动脉和腹主动脉" },
+                    { question: "肺动脉干", answer: "起自右心室的动脉圆锥，长约5cm，在主动脉弓前方分为左右肺动脉。运输静脉血至肺" },
+                    { question: "毛细血管", answer: "直径6-9μm，管壁极薄，仅由单层内皮细胞和基膜组成。是血液和组织液进行物质交换的场所。全身毛细血管总面积约6300㎡" },
+                    { question: "毛细血管的类型", answer: "①连续毛细血管：内皮连续，见于肌肉、神经、肺 ②有孔毛细血管：内皮有孔，见于肾小球、胃肠黏膜、内分泌腺 ③血窦：内皮不连续，见于肝、脾、骨髓" },
+                    { question: "静脉壁的结构", answer: "与动脉相似但壁薄、弹性小、管腔大。中小静脉有瓣膜（静脉瓣），防止血液倒流。深静脉瓣膜较多，浅静脉较少" },
+                    { question: "静脉的分类", answer: "①小静脉 ②中静脉：有静脉瓣 ③大静脉：如上下腔静脉，无瓣膜。按位置分：深静脉（伴行动脉）、浅静脉（皮下）" },
+                    { question: "上腔静脉", answer: "收集头、颈、上肢和胸壁的静脉血，由左右头臂静脉汇合而成，长约7cm，注入右心房。无瓣膜" },
+                    { question: "下腔静脉", answer: "收集下肢、腹部、盆部的静脉血，由左右髂总静脉在第4-5腰椎右侧汇合而成，沿脊柱右侧上行，穿膈，注入右心房。无瓣膜" },
+                    { question: "肝门静脉系", answer: "收集腹腔不成对器官（胃、肠、脾、胰）的静脉血，由脾静脉和肠系膜上静脉在胰颈后方汇合而成，长6-8cm。特点：起止均为毛细血管网（起于胃肠毛细血管，止于肝血窦）" },
+                    { question: "肝门静脉的属支", answer: "①脾静脉 ②肠系膜上静脉 ③肠系膜下静脉（常汇入脾静脉）④胃左静脉 ⑤胃右静脉 ⑥附脐静脉（胎儿期重要）" },
+                    { question: "肝门静脉高压的侧支循环", answer: "肝硬化时肝门静脉压力升高，血液通过侧支循环：①食管下段静脉丛→食管静脉曲张，破裂呕血 ②脐周静脉丛→'海蛇头' ③直肠静脉丛→痔" },
+                    { question: "奇静脉系", answer: "收集胸壁和腹壁的静脉血，连通上下腔静脉。奇静脉（右侧）注入上腔静脉；半奇静脉、副半奇静脉（左侧）跨过脊柱注入奇静脉" },
+                    { question: "肺静脉", answer: "左右各两条（共4条），运输富氧血回左心房。左肺静脉较短，右肺静脉较长。无瓣膜" }
+                ],
+                matching: [
+                    { term: "心尖", definition: "由左心室构成" },
+                    { term: "心底", definition: "主要由左心房构成" },
+                    { term: "左心室", definition: "心壁最厚的心腔" },
+                    { term: "右心室", definition: "最靠前的心腔" },
+                    { term: "肝门静脉", definition: "收集腹腔不成对器官静脉血" },
+                    { term: "肺动脉", definition: "输送静脉血到肺的动脉" }
+                ],
+                fillblank: [
+                    { question: "心脏___在左侧，___在右侧", answer: "2/3,1/3" },
+                    { question: "心尖由___构成", answer: "左心室" },
+                    { question: "心底主要由___构成", answer: "左心房" },
+                    { question: "肝门静脉长___cm", answer: "6-8" },
+                    { question: "左心室壁是右心室的___倍", answer: "3" }
+                ]
+            },
+            神经系统: {
+                quiz: [
+                    {
+                        question: "脊髓共有多少节？",
+                        options: ["24节", "28节", "31节", "33节"],
+                        correct: 2,
+                        explanation: "脊髓共31节：8颈节、12胸节、5腰节、5骶节、1尾节"
+                    },
+                    {
+                        question: "颈膨大位于哪些节段？",
+                        options: ["C1-C4", "C4-T1", "C5-T2", "C6-T3"],
+                        correct: 1,
+                        explanation: "颈膨大位于C4-T1，又称上肢神经丛"
+                    },
+                    {
+                        question: "腰膨大位于哪些节段？",
+                        options: ["L1-S2", "L2-S3", "L3-S4", "L4-S5"],
+                        correct: 1,
+                        explanation: "腰膨大位于L2-S3，又称下肢神经丛"
+                    },
+                    {
+                        question: "成人脊髓下端终止于哪个椎体？",
+                        options: ["第1腰椎", "第2腰椎", "第3腰椎", "第4腰椎"],
+                        correct: 1,
+                        explanation: "成人脊髓下端平对第1-2腰椎"
+                    },
+                    {
+                        question: "临床腰椎穿刺通常在哪个间隙进行？",
+                        options: ["第1-2腰椎", "第2-3腰椎", "第3-4或4-5腰椎", "第5腰椎-第1骶椎"],
+                        correct: 2,
+                        explanation: "临床避开脊髓，在第3-4或4-5腰椎间隙进行腰椎穿刺"
+                    },
+                    {
+                        question: "脊髓灰质位于？",
+                        options: ["中央", "外周", "前部", "后部"],
+                        correct: 0,
+                        explanation: "脊髓灰质位于中央，呈蝶形或H形"
+                    },
+                    {
+                        question: "脊髓白质位于？",
+                        options: ["中央", "外周", "前部", "后部"],
+                        correct: 1,
+                        explanation: "脊髓白质位于外周，颈部白质最多"
+                    },
+                    {
+                        question: "大脑皮质最厚的部位是？",
+                        options: ["额叶", "中央前回运动区", "枕叶视觉区", "颞叶"],
+                        correct: 1,
+                        explanation: "大脑皮质最厚部位是中央前回运动区，约4.5mm"
+                    }
+                ],
+                flashcards: [
+                    { question: "脊髓的位置", answer: "位于椎管内，上端在枕骨大孔处与延髓相连，下端平第1-2腰椎，终丝延续至尾骨" },
+                    { question: "脊髓的节段", answer: "31节：8颈节、12胸节、5腰节、5骶节、1尾节" },
+                    { question: "脊髓的膨大", answer: "颈膨大（C4-T1，上肢神经）、腰膨大（L2-S3，下肢神经）" },
+                    { question: "成人脊髓与椎骨的关系", answer: "C1-C4对应同序椎骨；C5-T4上移一节；T5-T8上移两节；T9-T12上移三节；腰骶髓平第1-2腰椎" },
+                    { question: "脊髓的结构", answer: "灰质（中央，蝶形，分前角、后角、中间带）、白质（外周，颈部最多）" },
+                    { question: "大脑皮质", answer: "大脑半球表面的灰质，面积0.2㎡，厚2.5mm，最厚处中央前回4.5mm，最薄处视觉区1.5mm" },
+                    { question: "海马结构", answer: "位于侧脑室下角，C形突起，与记忆有关，分3层：多形层、锥体层、分子层" },
+                    { question: "神经系统的组成", answer: "中枢神经系统（脑和脊髓）、周围神经系统（与脑脊髓相连的神经）" }
+                ],
+                flashcards: [
+                    { question: "神经系统的组成", answer: "①中枢神经系统：脑（大脑、间脑、脑干、小脑）和脊髓 ②周围神经系统：12对脑神经、31对脊神经及其分支" },
+                    { question: "脊髓的位置", answer: "位于椎管内，有脊膜与骨性椎管相隔。上端在枕骨大孔处与延髓相连，成人下端平第1-2腰椎下缘，终丝延续至尾骨" },
+                    { question: "脊髓的外形", answer: "长约42-45cm（男性），圆柱形，略扁。前后正中有前正中裂和后正中沟，前外侧沟和后外侧沟分隔前索、侧索、后索" },
+                    { question: "脊髓的节段（31节）", answer: "①颈节（C1-C8）：8个 ②胸节（T1-T12）：12个 ③腰节（L1-L5）：5个 ④骶节（S1-S5）：5个 ⑤尾节（Co）：1个" },
+                    { question: "脊髓的两个膨大", answer: "①颈膨大（C4-T1）：又称上肢神经丛，发出臂丛支配上肢 ②腰膨大（L2-S3）：又称下肢神经丛，发出腰骶丛支配下肢。膨大处神经细胞多，灰质增多" },
+                    { question: "脊髓圆锥和马尾", answer: "①脊髓圆锥：脊髓下端膨大后逐渐变细的部分 ②马尾：脊髓下端发出的腰、骶、尾神经根在椎管内下行，状如马尾 ③终丝：脊髓末端的细丝状结构，止于尾骨背面" },
+                    { question: "成人脊髓与椎骨的对应关系", answer: "①C1-C4：与同序号椎骨对应 ②C5-T4：上移1节（如C5对C4椎骨）③T5-T8：上移2节 ④T9-T12：上移3节 ⑤L、S、Co髓节：平对第1-2腰椎。记忆：颈平，上胸加1，中胸加2，下胸加3，腰骶对1-2腰椎" },
+                    { question: "腰椎穿刺", answer: "为避开脊髓，选择第3-4或4-5腰椎间隙进行（此处脊髓已终止，只有马尾神经）。用于抽取脑脊液检查、椎管内注射药物或麻醉" },
+                    { question: "脊髓的内部结构", answer: "①灰质：位于中央，蝶形或'H'形，由神经元胞体组成。分前角（运动神经元）、后角（感觉神经元中继）、中间带（侧角含交感神经元，仅T1-L2、S2-S4有）②白质：位于外周，由神经纤维组成，分前索、侧索、后索" },
+                    { question: "脊髓灰质的分区", answer: "①前角：含运动神经元（α运动神经元支配骨骼肌）②后角：接受感觉信息 ③侧角：T1-L2节段含交感神经节前神经元，S2-S4含副交感神经节前神经元 ④灰质中央管：脊髓中央的细管，含脑脊液，向上通第四脑室" },
+                    { question: "脊髓白质的组成", answer: "①前索：前正中裂与前外侧沟之间 ②侧索：前外侧沟与后外侧沟之间（最大）③后索：后外侧沟与后正中沟之间。颈部白质最多（神经束最长），腰骶部最少" },
+                    { question: "脊髓的主要传导束", answer: "上行束（感觉）：①薄束、楔束（精细触觉、本体觉）②脊髓丘脑束（痛温觉、粗触觉）。下行束（运动）：①皮质脊髓束（锥体束）：随意运动 ②红核脊髓束、前庭脊髓束等：调节肌张力和姿势" },
+                    { question: "脊髓的功能", answer: "①传导功能：上行传导感觉，下行传导运动指令 ②反射功能：脊髓反射中枢（如膝跳反射、屈肌反射）③营养功能：支配骨骼肌的营养" },
+                    { question: "脑的位置和重量", answer: "位于颅腔内，成人重约1200-1400g（男性约1400g，女性约1250g）。由大脑、间脑、脑干、小脑组成" },
+                    { question: "大脑半球", answer: "分为左右两个半球，由胼胝体连接。表面有脑回（凸起）和脑沟（凹陷），大大增加了皮质面积（约2200cm²）" },
+                    { question: "大脑半球的分叶", answer: "以中央沟、外侧沟、顶枕裂为界，分为：①额叶（中央沟之前）②顶叶（中央沟之后）③颞叶（外侧沟下方）④枕叶（后部）⑤岛叶（外侧沟深部）" },
+                    { question: "大脑皮质-灰质", answer: "大脑半球表面的灰质，厚约1.5-4.5mm（平均2.5mm），面积约0.2㎡。含约200亿神经元。最厚处：中央前回运动区4.5mm；最薄处：枕叶视觉区1.5mm" },
+                    { question: "大脑皮质的功能区", answer: "①中央前回：躯体运动区（4区）②中央后回：躯体感觉区（1、2、3区）③枕叶：视觉区（17区）④颞上回：听觉区（41、42区）⑤额下回后部：运动性语言中枢（Broca区，44、45区）⑥颞上回后部：听觉性语言中枢（Wernicke区，22区）" },
+                    { question: "大脑白质", answer: "位于皮质深部，由神经纤维组成。分为三类：①联络纤维：连接同侧半球不同区域（如弓状纤维）②连合纤维：连接两侧半球（如胼胝体）③投射纤维：连接大脑皮质与下级中枢（如内囊）" },
+                    { question: "基底核（基底神经节）", answer: "埋藏在大脑白质深部的灰质团块，包括：①尾状核 ②豆状核（壳核+苍白球）③屏状核 ④杏仁体。功能：调节肌张力、协调运动、参与学习记忆。损伤可致帕金森病、舞蹈病" },
+                    { question: "内囊", answer: "大脑皮质与脑干、脊髓间重要的上下行纤维通路，位于尾状核、背侧丘脑与豆状核之间。分为：前脚、膝、后脚。后脚含皮质脊髓束和丘脑皮质束，损伤导致对侧'三偏'（偏瘫、偏身感觉障碍、偏盲）" },
+                    { question: "海马结构与功能", answer: "位于侧脑室下角底，呈C形隆起。分为3层：多形层、锥体层、分子层。功能：学习和记忆（尤其短期记忆转为长期记忆），空间定位。损伤导致近事遗忘" },
+                    { question: "间脑", answer: "位于大脑和脑干之间，大部分被大脑半球遮盖。包括：背侧丘脑、后丘脑、上丘脑、底丘脑、下丘脑" },
+                    { question: "背侧丘脑", answer: "间脑最大部分，卵圆形灰质团块。是除嗅觉外所有感觉的中继站，也参与运动调节、意识和情绪。分为多个核团，损伤可致丘脑痛、感觉障碍" },
+                    { question: "下丘脑", answer: "位于丘脑下方，虽小但功能重要。功能：①调节内脏活动（心血管、消化、呼吸）②调节内分泌（通过垂体）③调节体温 ④调节水盐代谢 ⑤调节摄食和饮水 ⑥参与情绪和睡眠" },
+                    { question: "脑干的组成", answer: "由上向下：①中脑（最小）②脑桥 ③延髓（下端续脊髓）。功能：生命中枢所在，传导通路，脑神经核所在" },
+                    { question: "中脑", answer: "位于脑干最上部。①顶盖：含上丘（视反射中枢）和下丘（听反射中枢）②被盖：含红核（调节肌张力）、黑质（与帕金森病有关）③大脑脚：皮质脊髓束和皮质脑桥束通过" },
+                    { question: "脑桥", answer: "位于中脑和延髓之间，膨大如桥。含脑桥核（中继小脑）、三叉神经核、面神经核、展神经核等" },
+                    { question: "延髓", answer: "脑干最下部，下续脊髓。含重要生命中枢：①呼吸中枢 ②心血管中枢（心跳、血压）③吞咽、呕吐、咳嗽中枢。损伤可危及生命" },
+                    { question: "网状结构", answer: "分布在脑干的网状神经元群。功能：①维持觉醒（上行激活系统）②调节肌张力 ③调节内脏活动 ④参与生命中枢功能" },
+                    { question: "小脑", answer: "位于颅后窝，脑桥和延髓的背侧。由小脑半球和中间的蚓部组成。功能：①维持身体平衡 ②调节肌张力 ③协调随意运动。损伤致共济失调、眼球震颤、肌张力降低" },
+                    { question: "小脑的分叶和功能", answer: "①前叶：调节肌张力 ②后叶：协调运动 ③绒球小结叶：维持平衡。按功能分：①前庭小脑（平衡）②脊髓小脑（肌张力）③大脑小脑（协调运动）" },
+                    { question: "脑神经（12对）", answer: "Ⅰ嗅神经、Ⅱ视神经、Ⅲ动眼神经、Ⅳ滑车神经、Ⅴ三叉神经、Ⅵ展神经、Ⅶ面神经、Ⅷ前庭蜗神经、Ⅸ舌咽神经、Ⅹ迷走神经、Ⅺ副神经、Ⅻ舌下神经" },
+                    { question: "脑室系统", answer: "脑内的腔隙系统，充满脑脊液。包括：①侧脑室（左右各一）②第三脑室（间脑）③中脑导水管 ④第四脑室（脑桥和延髓背侧）。侧脑室→室间孔→第三脑室→中脑导水管→第四脑室→正中孔和外侧孔→蛛网膜下隙" },
+                    { question: "脑脊液", answer: "无色透明液体，由脑室脉络丛产生，总量约120-150ml，每日产生约500ml（不断循环更新）。功能：①缓冲保护脑和脊髓 ②营养作用 ③清除代谢产物。正常压力70-180mmH₂O" },
+                    { question: "脑膜", answer: "由外向内三层：①硬脑膜：坚韧，贴颅骨 ②蛛网膜：薄而透明 ③软脑膜：紧贴脑表面，深入脑沟。蛛网膜与软脑膜之间为蛛网膜下隙，充满脑脊液" },
+                    { question: "脊神经（31对）", answer: "①颈神经8对（C1-C8）②胸神经12对（T1-T12）③腰神经5对（L1-L5）④骶神经5对（S1-S5）⑤尾神经1对（Co）。均为混合神经，含运动和感觉纤维" },
+                    { question: "神经丛", answer: "脊神经前支相互交织形成的网状结构。主要有：①颈丛（C1-C4）：支配颈部肌肉和皮肤 ②臂丛（C5-T1）：支配上肢 ③腰丛（L1-L4）：支配下腹壁和大腿前内侧 ④骶丛（L4-S4）：支配臀部和下肢" },
+                    { question: "重要周围神经", answer: "①正中神经（臂丛）：支配前臂旋前肌、腕屈肌和拇指对掌 ②尺神经（臂丛）：支配手内肌 ③桡神经（臂丛）：支配伸肌 ④坐骨神经（骶丛，人体最粗大）：分腓总神经和胫神经，支配下肢 ⑤股神经（腰丛）：支配股四头肌" },
+                    { question: "自主神经系统", answer: "又称植物神经，调节内脏活动。包括：①交感神经：节前神经元在T1-L2脊髓侧角，兴奋时'应急反应'（心跳加快、血压升高、瞳孔扩大）②副交感神经：节前神经元在脑干和S2-S4脊髓侧角，兴奋时'休息反应'（心跳减慢、消化增强）" }
+                ],
+                matching: [
+                    { term: "颈膨大", definition: "C4-T1，上肢神经丛" },
+                    { term: "腰膨大", definition: "L2-S3，下肢神经丛" },
+                    { term: "灰质", definition: "脊髓中央，蝶形" },
+                    { term: "白质", definition: "脊髓外周，神经纤维" },
+                    { term: "马尾", definition: "脊髓下端的神经根" },
+                    { term: "大脑皮质", definition: "大脑半球表面的灰质" }
+                ],
+                fillblank: [
+                    { question: "脊髓共___节", answer: "31" },
+                    { question: "颈膨大位于___至___节段", answer: "C4,T1" },
+                    { question: "成人脊髓下端平第___腰椎", answer: "1-2" },
+                    { question: "腰椎穿刺在第___或___腰椎间隙", answer: "3-4,4-5" },
+                    { question: "大脑皮质最厚处约___mm", answer: "4.5" }
+                ]
+            },
+            女性生殖系统: {
+                quiz: [
+                    {
+                        question: "卵巢的主要功能是？",
+                        options: ["储存卵子", "产生卵子和分泌性激素", "受精", "妊娠"],
+                        correct: 1,
+                        explanation: "卵巢的主要功能是产生卵子和分泌女性激素（雌激素、孕激素）"
+                    },
+                    {
+                        question: "输卵管的受精部位通常在？",
+                        options: ["子宫部", "峡部", "壶腹部", "漏斗部"],
+                        correct: 2,
+                        explanation: "输卵管壶腹部是受精的常见部位"
+                    },
+                    {
+                        question: "子宫的正常位置是？",
+                        options: ["前倾前屈", "后倾后屈", "中位", "侧位"],
+                        correct: 0,
+                        explanation: "正常子宫呈前倾前屈位"
+                    },
+                    {
+                        question: "子宫分为几部分？",
+                        options: ["2部", "3部", "4部", "5部"],
+                        correct: 1,
+                        explanation: "子宫分为底、体、颈三部分"
+                    }
+                ],
+                flashcards: [
+                    { question: "女性生殖系统的组成", answer: "①内生殖器：卵巢、输卵管、子宫、阴道 ②外生殖器：阴阜、大阴唇、小阴唇、阴蒂、阴道前庭、前庭大腺" },
+                    { question: "卵巢的位置", answer: "位于盆腔的卵巢窝内，左右各一。上端（输卵管端）与输卵管伞接触，下端（子宫端）借卵巢固有韧带连于子宫底" },
+                    { question: "卵巢的形态和大小", answer: "扁椭圆形，灰白色。成年女性约4×3×1cm，重5-6g。前缘（系膜缘）：有卵巢系膜附着；后缘（游离缘）：游离" },
+                    { question: "卵巢的功能", answer: "①产生卵子（生殖功能）：每月排卵一次（月经周期第14天左右）②分泌女性激素：雌激素（促进女性性征）、孕激素（维持妊娠）、少量雄激素" },
+                    { question: "卵巢的结构", answer: "①皮质：外层，含各级卵泡（原始卵泡、生长卵泡、成熟卵泡）和黄体、白体 ②髓质：内层，含血管、淋巴管、神经" },
+                    { question: "输卵管的位置和长度", answer: "位于子宫两侧，子宫阔韧带上缘内。长约8-14cm，是卵子运输通道和受精场所" },
+                    { question: "输卵管的分部（4部）", answer: "①子宫部（间质部）：穿子宫壁的部分 ②峡部：靠近子宫，细直，长约2-3cm ③壶腹部：最长最宽（长约5-8cm），受精常发生于此 ④漏斗部（伞部）：末端膨大呈漏斗状，有输卵管伞，拾卵" },
+                    { question: "输卵管的功能", answer: "①拾卵：输卵管伞拾取排出的卵子 ②受精场所：卵子与精子在壶腹部结合 ③运输：输送卵子/受精卵至子宫（纤毛摆动+肌肉蠕动）④提供受精卵早期发育环境" },
+                    { question: "异位妊娠（宫外孕）", answer: "受精卵在子宫体腔外着床，95%发生在输卵管（以壶腹部最多）。原因：输卵管炎症、发育不良等致输卵管不通畅" },
+                    { question: "子宫的位置", answer: "位于盆腔中央，膀胱与直肠之间。正常呈前倾前屈位：①前倾：子宫长轴与阴道长轴呈向前开放的钝角（约90°）②前屈：子宫体与子宫颈呈向前开放的钝角（约170°）" },
+                    { question: "子宫的形态和大小", answer: "呈倒置梨形，前后略扁。成年未产妇约7×5×3cm，重约50g；经产妇稍大。青春期前小，绝经后萎缩" },
+                    { question: "子宫的分部（3部）", answer: "①子宫底：子宫上端宽凸的部分，在输卵管口连线以上 ②子宫体：底与颈之间的部分，占2/3 ③子宫颈：下端窄细的部分，占1/3，分为阴道上部和阴道部" },
+                    { question: "子宫腔", answer: "①子宫体腔：呈倒置三角形，两上角通输卵管，下角通子宫颈管 ②子宫颈管：呈梭形，上口（子宫内口）与体腔相通，下口（子宫外口）通阴道。未产妇外口呈圆形，经产妇呈横裂状" },
+                    { question: "子宫壁的结构（3层）", answer: "①黏膜层（子宫内膜）：分功能层（周期性脱落，形成月经）和基底层（再生）②肌层：最厚，平滑肌，分三层（内纵、中环、外纵）③浆膜层（外膜）：腹膜脏层覆盖" },
+                    { question: "子宫的韧带", answer: "①子宫阔韧带：双层腹膜，左右各一，固定作用弱 ②子宫圆韧带：从子宫角向外下，穿腹股沟管，止于大阴唇，维持前倾 ③子宫主韧带：子宫颈两侧至盆壁，含血管神经，主要固定作用 ④骶子宫韧带：从子宫颈后壁至骶骨，维持前屈" },
+                    { question: "子宫的血液供应", answer: "主要来自子宫动脉（髂内动脉分支）。子宫动脉在子宫颈外侧约2cm处与输尿管交叉（动脉在上），手术时需注意" },
+                    { question: "阴道的位置和形态", answer: "位于膀胱与直肠之间，上端包绕子宫颈（形成阴道穹窿），下端开口于阴道前庭。长约7-9cm，前后壁贴近呈'H'形" },
+                    { question: "阴道穹窿", answer: "阴道上端包绕子宫颈形成的环形隐窝，分为前穹窿、后穹窿、侧穹窿。后穹窿最深，与直肠子宫陷凹相邻（盆腔最低点），穿刺引流部位" },
+                    { question: "阴道的功能", answer: "①月经血排出通道 ②性交器官 ③分娩时胎儿娩出通道。阴道黏膜无腺体，润滑液来自子宫颈管腺体和阴道壁渗出液" },
+                    { question: "乳腺的位置", answer: "位于胸前部，浅筋膜浅层与深层之间，第2-6肋、胸骨旁线至腋中线之间。乳头位于第4肋间或第5肋水平" },
+                    { question: "乳腺的结构", answer: "①腺体：15-20个乳腺叶，每叶有一个输乳管开口于乳头 ②输乳管：近乳头处膨大形成输乳窦（储存乳汁）③乳头和乳晕：乳头有输乳管开口，乳晕有皮脂腺（蒙氏腺）④悬韧带（Cooper韧带）：起支持作用，乳腺癌时可致皮肤凹陷" },
+                    { question: "乳腺的淋巴引流", answer: "75%流向腋窝淋巴结，其次流向胸骨旁淋巴结。乳腺癌易发生淋巴转移，腋窝淋巴结是首要转移部位" },
+                    { question: "月经周期", answer: "平均28天（21-35天）。①月经期（1-4天）：功能层脱落出血 ②增殖期（5-14天）：雌激素作用，内膜增厚 ③分泌期（15-28天）：孕激素作用，内膜分泌，为受精卵着床准备。若未受孕，黄体退化，激素下降，内膜脱落，进入下一周期" }
+                ],
+                matching: [
+                    { term: "卵巢", definition: "产生卵子和分泌女性激素" },
+                    { term: "输卵管壶腹部", definition: "受精的常见部位" },
+                    { term: "子宫内膜", definition: "周期性脱落形成月经" },
+                    { term: "阴道后穹窿", definition: "最深，盆腔穿刺部位" },
+                    { term: "子宫主韧带", definition: "主要固定子宫的韧带" },
+                    { term: "乳腺", definition: "位于第2-6肋之间" }
+                ],
+                fillblank: [
+                    { question: "输卵管受精部位是___", answer: "壶腹部" },
+                    { question: "子宫分为___、___、___三部", answer: "底,体,颈" },
+                    { question: "正常子宫位置呈___位", answer: "前倾前屈" },
+                    { question: "阴道___最深", answer: "后穹窿" },
+                    { question: "乳头平第___肋间", answer: "4" }
+                ]
+            },
+            男性生殖系统: {
+                quiz: [
+                    {
+                        question: "睾丸的主要功能是？",
+                        options: ["储存精子", "产生精子和分泌雄激素", "射精", "勃起"],
+                        correct: 1,
+                        explanation: "睾丸的主要功能是产生精子和分泌雄激素（睾酮）"
+                    },
+                    {
+                        question: "前列腺位于哪里？",
+                        options: ["阴囊内", "膀胱上方", "膀胱底与尿生殖膈之间", "会阴部"],
+                        correct: 2,
+                        explanation: "前列腺位于膀胱底与尿生殖膈之间，包绕尿道起始部"
+                    },
+                    {
+                        question: "男性尿道分为几部分？",
+                        options: ["2部", "3部", "4部", "5部"],
+                        correct: 1,
+                        explanation: "男性尿道分为3部：前列腺部、膜部、海绵体部"
+                    },
+                    {
+                        question: "男性尿道最狭窄的部位是？",
+                        options: ["尿道内口", "前列腺部", "膜部", "尿道外口"],
+                        correct: 2,
+                        explanation: "膜部是男性尿道最狭窄的部位"
+                    }
+                ],
+                flashcards: [
+                    { question: "男性生殖系统的组成", answer: "①内生殖器：睾丸（生殖腺）、附睾、输精管、射精管、精囊腺、前列腺、尿道球腺 ②外生殖器：阴囊、阴茎" },
+                    { question: "睾丸的位置和大小", answer: "位于阴囊内，左右各一，左侧略低。卵圆形，成人长3-4cm，宽2-3cm，厚2cm，重10-15g" },
+                    { question: "睾丸的被膜", answer: "由外向内：①鞘膜：浆膜，分脏层（紧贴睾丸）和壁层（贴阴囊），两层之间为鞘膜腔（少量浆液）②白膜：致密结缔组织，在后缘增厚形成睾丸纵隔，向内发出小隔，将睾丸分成200-300个小叶" },
+                    { question: "睾丸的结构", answer: "①生精小管：曲细精管，产生精子，每个小叶有2-4条 →直精小管→睾丸网→睾丸输出小管→附睾 ②间质细胞（Leydig细胞）：位于生精小管之间，分泌雄激素（睾酮）" },
+                    { question: "睾丸的功能", answer: "①产生精子：生精小管内的生精上皮产生精子，青春期开始，持续终生 ②分泌雄激素：间质细胞分泌睾酮，促进男性性征发育、维持性功能、促进蛋白质合成" },
+                    { question: "睾丸的下降", answer: "胎儿期睾丸在腹腔内，7-9月时经腹股沟管下降至阴囊。若未下降：隐睾（影响生精功能，易恶变）" },
+                    { question: "附睾的位置和形态", answer: "紧贴睾丸上缘和后缘，呈新月形。分为：①头：位于睾丸上端，由10-15条睾丸输出小管蟠曲而成 ②体：中间部分 ③尾：下端，移行为输精管" },
+                    { question: "附睾的功能", answer: "①储存精子：精子在附睾停留2-3周成熟（获得运动能力和受精能力）②运输精子：肌肉收缩推动精子向前 ③吸收和分泌：为精子提供营养" },
+                    { question: "输精管的行程", answer: "起自附睾尾，经腹股沟管进入盆腔，绕膀胱外侧后面至膀胱底，末端膨大成输精管壶腹，与精囊腺排泄管汇合成射精管。全长约40-50cm" },
+                    { question: "输精管的分部", answer: "①睾丸部：阴囊内 ②精索部：腹股沟管内，与血管神经共同组成精索 ③腹股沟部：穿腹股沟管 ④盆部：盆腔内" },
+                    { question: "输精管结扎", answer: "男性绝育术，通常在阴囊上部或腹股沟管浅环处结扎精索内的输精管。不影响性功能和雄激素分泌" },
+                    { question: "精索", answer: "由输精管、睾丸动静脉、淋巴管、神经和被膜（提睾肌、精索筋膜等）共同组成的索状结构。起自睾丸上端，经腹股沟管至腹股沟管深环" },
+                    { question: "射精管", answer: "由输精管壶腹与精囊腺排泄管汇合而成，长约2cm，穿前列腺实质，开口于尿道前列腺部的精阜" },
+                    { question: "精囊腺", answer: "位于膀胱底后方，输精管壶腹外侧，左右各一。长约5cm，分泌弱碱性黏稠液体（占精液60-70%），含果糖（精子能量来源）、前列腺素等" },
+                    { question: "前列腺的位置和形态", answer: "位于膀胱底与尿生殖膈之间，包绕尿道起始部和射精管。栗子形，底朝上（对膀胱底），尖朝下（对尿生殖膈）。成人重约20g" },
+                    { question: "前列腺的结构", answer: "实质由30-50个腺泡组成，导管开口于尿道前列腺部。可分为5叶：前叶、中叶、后叶、左右侧叶。中叶增生易压迫尿道引起排尿困难" },
+                    { question: "前列腺的功能", answer: "分泌前列腺液（占精液20-30%），呈乳白色弱碱性，含：①前列腺特异性抗原（PSA）：液化精液 ②柠檬酸、酸性磷酸酶、锌等 ③蛋白水解酶。作用：稀释精液，激活精子活力，中和阴道酸性环境" },
+                    { question: "前列腺增生", answer: "多见于老年男性，中叶增生最易引起症状。压迫尿道→排尿困难、尿频、尿潴留。可通过直肠指检触及（前列腺后面紧贴直肠前壁）" },
+                    { question: "尿道球腺（Cowper腺）", answer: "豌豆大小，左右各一，位于尿生殖膈内，导管开口于尿道海绵体部。性兴奋时分泌黏液，润滑尿道" },
+                    { question: "阴囊", answer: "容纳睾丸和附睾的皮囊，由皮肤、肉膜、精索筋膜等组成。①阴囊中隔：将阴囊分为左右两室 ②阴囊肉膜：含平滑肌，收缩使阴囊皱缩。功能：调节睾丸温度（比体温低2-3℃，适宜生精）" },
+                    { question: "阴茎的组成", answer: "①阴茎体：由三个海绵体组成（2个阴茎海绵体+1个尿道海绵体），外被筋膜和皮肤 ②阴茎头：阴茎前端膨大部分 ③阴茎根：固定于耻骨和会阴部" },
+                    { question: "阴茎海绵体和尿道海绵体", answer: "①阴茎海绵体：2个圆柱状，位于背侧，勃起时充血膨大 ②尿道海绵体：1个，位于腹侧，包绕尿道，前端膨大形成阴茎头，后端膨大形成尿道球" },
+                    { question: "阴茎勃起机制", answer: "性刺激→副交感神经兴奋→海绵体动脉扩张，血液充盈海绵体→静脉回流受阻→阴茎勃起。勃起功能障碍（ED）：器质性或心理性因素导致" },
+                    { question: "男性尿道（16-22cm）", answer: "起自膀胱尿道内口，开口于阴茎头尿道外口。既是排尿通道，又是排精通道。分3部：①前列腺部（3-4cm）：最宽，有精阜（射精管和前列腺管开口）②膜部（1-2cm）：最短最窄，穿尿生殖膈，导尿易损伤 ③海绵体部（11-16cm）：最长，包绕于尿道海绵体内" },
+                    { question: "男性尿道的弯曲", answer: "有两个弯曲：①耻骨下弯：固定，凹向后下 ②耻骨前弯：可变，凹向前上，导尿时提起阴茎可消失" },
+                    { question: "男性尿道的狭窄", answer: "3个生理性狭窄：①尿道内口 ②膜部（最狭窄，导尿易阻）③尿道外口。结石易嵌顿，导尿易损伤" },
+                    { question: "精液", answer: "射精时排出的液体，由精子（5%）和精浆（95%）组成。精浆来源：精囊腺液60-70%，前列腺液20-30%，附睾液、尿道球腺液等。正常量2-6ml，pH 7.2-7.8，精子数2000万-1.5亿/ml" }
+                ],
+                matching: [
+                    { term: "睾丸", definition: "产生精子和雄激素" },
+                    { term: "附睾", definition: "储存和运输精子" },
+                    { term: "前列腺", definition: "分泌前列腺液" },
+                    { term: "精囊腺", definition: "分泌含果糖的液体" },
+                    { term: "尿道膜部", definition: "男性尿道最狭窄处" },
+                    { term: "输精管", definition: "运输精子的管道" }
+                ],
+                fillblank: [
+                    { question: "睾丸的两大功能是产生___和分泌___", answer: "精子,雄激素" },
+                    { question: "男性尿道分为___部、___部和___部", answer: "前列腺,膜,海绵体" },
+                    { question: "前列腺位于膀胱底与___之间", answer: "尿生殖膈" },
+                    { question: "男性尿道最狭窄的部位是___部", answer: "膜" },
+                    { question: "精液中___占60-70%", answer: "精囊腺液" }
+                ]
+            },
+            循环系统组织学: {
+                quiz: [
+                    {
+                        question: "心内膜由什么组成？",
+                        options: ["复层鳞状上皮", "单层扁平上皮", "单层柱状上皮", "假复层纤毛上皮"],
+                        correct: 1,
+                        explanation: "心内膜表面为单层扁平上皮（内皮），光滑，减少血流阻力"
+                    },
+                    {
+                        question: "大动脉的中膜主要含有？",
+                        options: ["平滑肌", "弹性纤维", "骨骼肌", "胶原纤维"],
+                        correct: 1,
+                        explanation: "大动脉（弹性动脉）中膜富含弹性纤维，起弹性贮器作用"
+                    },
+                    {
+                        question: "毛细血管直径约为？",
+                        options: ["2-4μm", "6-9μm", "10-15μm", "20-30μm"],
+                        correct: 1,
+                        explanation: "毛细血管直径6-9μm，仅允许红细胞单行通过"
+                    },
+                    {
+                        question: "血窦主要存在于？",
+                        options: ["肌肉", "肺", "肝、脾、骨髓", "肾"],
+                        correct: 2,
+                        explanation: "血窦（直径40μm）主要存在于肝、脾、骨髓"
+                    }
+                ],
+                flashcards: [
+                    { question: "心脏壁的三层结构", answer: "①心内膜：内皮+内皮下层，内皮是单层扁平上皮 ②心肌膜：心房肌和心室肌，左室最厚，三层平滑肌（内纵、中环、外斜）③心外膜：即心包脏层，浆膜" },
+                    { question: "心内膜详细结构", answer: "①表面：单层扁平内皮，光滑，降低血流阻力 ②内皮下层：分内外两层。内层：含弹性纤维和少量平滑肌；外层（靠近心肌）：疏松结缔组织，含小血管和神经" },
+                    { question: "心肌膜特点", answer: "①左室最厚（10-15mm）②心房肌与心室肌被心骨骼分隔，不连续 ③肌纤维螺旋状排列，分三层（内纵、中环、外斜）④层间有丰富血管和结缔组织" },
+                    { question: "心外膜", answer: "即心包脏层，为浆膜。①表面：单层间皮细胞 ②深面：疏松结缔组织，含血管、神经、脂肪。与心包壁层之间形成心包腔" },
+                    { question: "心瓣膜的结构", answer: "为心内膜的皱襞。分两面：①表面：内皮覆盖 ②内面：致密结缔组织（含胶原纤维和弹性纤维）构成支架" },
+                    { question: "动脉壁的三层结构", answer: "①内膜：单层扁平内皮+内皮下层（较薄）②中膜：最厚层，大动脉以弹性纤维为主，中小动脉以平滑肌为主 ③外膜：疏松结缔组织，含血管、神经" },
+                    { question: "大动脉（弹性动脉）", answer: "如主动脉、肺动脉。①内膜：内皮+薄内皮下层 ②中膜：最厚，富含弹性纤维，弹性贮器作用（收缩期贮血，舒张期释放）③外膜：疏松结缔组织。内膜与中膜交界无内弹性膜" },
+                    { question: "中动脉（肌性动脉）", answer: "如肱动脉、股动脉。①内膜：内皮+薄内皮下层 ②中膜：较厚，以平滑肌为主（环形排列），调节血流和血压 ③外膜：疏松结缔组织。内膜与中膜交界有明显内弹性膜，中膜与外膜交界有外弹性膜" },
+                    { question: "小动脉", answer: "直径<1mm。①内膜：内皮+极薄内皮下层 ②中膜：1-2层环形平滑肌，调节血流阻力（主要阻力血管）③外膜：薄。有内弹性膜" },
+                    { question: "微动脉", answer: "①内膜：仅有内皮 ②中膜：1层平滑肌（不完整）③外膜：极薄或无。无弹性膜" },
+                    { question: "毛细血管的基本结构", answer: "管径6-9μm，壁极薄。①内皮：单层扁平细胞，核部分略凸 ②基膜：内皮外的薄膜 ③周细胞：位于内皮和基膜之间，有收缩功能。无平滑肌层" },
+                    { question: "连续毛细血管", answer: "内皮细胞连续，基膜完整。分布：肺、中枢神经系统、肌肉、结缔组织。血-脑屏障就是这种类型" },
+                    { question: "有孔毛细血管", answer: "内皮细胞有孔（直径60-80nm），基膜连续。分布：胃肠黏膜、肾小球、内分泌腺。通透性高，利于物质快速交换" },
+                    { question: "血窦（不连续毛细血管）", answer: "①管径大（直径40μm）②内皮不连续，有大间隙 ③基膜不完整或无。分布：肝、脾、骨髓。通透性最高，血细胞可自由出入" },
+                    { question: "毛细血管的功能", answer: "①物质交换：营养物质、氧气、代谢废物、二氧化碳 ②白细胞游出：炎症时白细胞穿过内皮进入组织 ③调节血流分布：毛细血管前括约肌控制开放" },
+                    { question: "静脉壁的三层结构", answer: "与动脉相似但：①壁薄 ②弹性小 ③管腔大 ④中小静脉有静脉瓣（防血液倒流）。静脉瓣是内膜向腔内突出形成的半月形皱襞" },
+                    { question: "小静脉", answer: "①内膜：内皮 ②中膜：薄，少量平滑肌和结缔组织 ③外膜：较厚。无瓣膜" },
+                    { question: "中静脉", answer: "①内膜：内皮+薄内皮下层 ②中膜：较薄，平滑肌和弹性纤维 ③外膜：最厚层，疏松结缔组织。有静脉瓣，深静脉瓣膜多，浅静脉少" },
+                    { question: "大静脉", answer: "如上下腔静脉。①内膜：内皮+内皮下层 ②中膜：薄，平滑肌少 ③外膜：最厚，发达的纵行平滑肌和结缔组织。无瓣膜" },
+                    { question: "毛细淋巴管", answer: "起始于组织间隙，盲端。①管腔大而不规则 ②内皮：单层扁平细胞，边缘重叠，可开放（锚丝固定）③仅有不完整基膜，无平滑肌。功能：回收组织液、吸收脂肪（肠绒毛）" },
+                    { question: "淋巴管", answer: "与静脉相似。①壁薄 ②瓣膜多（防倒流）③三层结构不清楚。最终汇入胸导管或右淋巴导管注入静脉" },
+                    { question: "淋巴导管（胸导管）", answer: "①管壁分三层，但界限不清 ②中膜平滑肌发达（推动淋巴流动）③外膜：含营养血管。右淋巴导管较短" }
+                ],
+                matching: [
+                    { term: "心内膜", definition: "单层扁平内皮" },
+                    { term: "大动脉中膜", definition: "富含弹性纤维" },
+                    { term: "中动脉中膜", definition: "富含平滑肌" },
+                    { term: "毛细血管", definition: "仅有内皮和基膜" },
+                    { term: "连续毛细血管", definition: "存在于肺和中枢神经系统" },
+                    { term: "血窦", definition: "存在于肝、脾、骨髓" }
+                ],
+                fillblank: [
+                    { question: "心内膜表面为单层___上皮", answer: "扁平" },
+                    { question: "毛细血管直径约___μm", answer: "6-9" },
+                    { question: "大动脉中膜富含___纤维", answer: "弹性" },
+                    { question: "血窦直径约___μm", answer: "40" },
+                    { question: "中小静脉有___防止血液倒流", answer: "静脉瓣" }
+                ]
+            },
+            淋巴系统: {
+                quiz: [
+                    {
+                        question: "脾是人体最大的什么器官？",
+                        options: ["消化器官", "呼吸器官", "淋巴器官", "内分泌器官"],
+                        correct: 2,
+                        explanation: "脾是人体最大的淋巴器官"
+                    },
+                    {
+                        question: "脾位于哪个区域？",
+                        options: ["右季肋区", "左季肋区", "脐区", "腹上区"],
+                        correct: 1,
+                        explanation: "脾位于左季肋区，第9-11肋处"
+                    },
+                    {
+                        question: "胸腺是什么类型的淋巴器官？",
+                        options: ["周围淋巴器官", "中枢淋巴器官", "次级淋巴器官", "淋巴结"],
+                        correct: 1,
+                        explanation: "胸腺是中枢淋巴器官，T淋巴细胞分化成熟的场所"
+                    },
+                    {
+                        question: "淋巴结的主要功能不包括？",
+                        options: ["产生淋巴细胞", "过滤淋巴", "免疫应答", "产生红细胞"],
+                        correct: 3,
+                        explanation: "淋巴结不产生红细胞，红细胞由骨髓产生"
+                    }
+                ],
+                flashcards: [
+                    { question: "淋巴系统的组成", answer: "①淋巴管道：毛细淋巴管、淋巴管、淋巴导管（胸导管、右淋巴导管）②淋巴组织：弥散淋巴组织、淋巴小结 ③淋巴器官：淋巴结、脾、胸腺、扁桃体" },
+                    { question: "淋巴系统的功能", answer: "①回收组织液，维持体液平衡 ②运输脂肪（小肠吸收的脂肪经淋巴管运输）③产生淋巴细胞 ④过滤淋巴，清除异物、细菌、肿瘤细胞 ⑤免疫应答（产生抗体，细胞免疫）" },
+                    { question: "脾-最大淋巴器官", answer: "位于左季肋区，膈与胃之间，第9-11肋处。成人重约100-250g，长轴与第10肋平行。暗红色，质软而脆，富含血液" },
+                    { question: "脾的位置特点", answer: "①腹膜内位器官（完全被腹膜包裹）②位置可随呼吸和体位移动（呼吸时升降，立位时低2.5cm）③正常情况下肋缘下触不到，肿大时可触及" },
+                    { question: "脾门", answer: "位于脾内侧面中部，是脾动静脉、神经、淋巴管出入的门户。脾动脉（腹腔干分支）供血，脾静脉回流入肝门静脉" },
+                    { question: "脾的结构", answer: "①被膜：致密结缔组织和少量平滑肌 ②脾实质：白髓（淋巴组织，免疫功能）+红髓（血窦，储血、滤血、造血）③脾索：红髓内的细胞索，含巨噬细胞" },
+                    { question: "脾的功能", answer: "①免疫功能：产生淋巴细胞（T、B细胞），产生抗体 ②过滤血液：清除衰老红细胞、细菌、异物 ③储血：可储存约200ml血液，失血时收缩补充 ④造血：胎儿期造血，成人病理状态下可恢复造血（髓外造血）⑤破坏老化血细胞" },
+                    { question: "脾切除后的影响", answer: "①免疫功能下降，易感染（尤其荚膜菌）②血小板增多 ③异常红细胞增多。但可由其他淋巴器官代偿部分功能" },
+                    { question: "脾大的原因", answer: "①感染性：疟疾、黑热病、伤寒、病毒感染 ②充血性：肝硬化门脉高压、心衰 ③增生性：白血病、淋巴瘤 ④浸润性：淀粉样变性、戈谢病" },
+                    { question: "胸腺-中枢淋巴器官", answer: "位于胸骨柄后方、心脏前上方的前纵隔。新生儿重10-15g，青春期最大（30-40g），以后逐渐萎缩，老年人被脂肪组织替代" },
+                    { question: "胸腺的结构", answer: "①左右两叶，每叶分若干小叶 ②小叶：皮质（外层，深染，密集淋巴细胞）+髓质（内层，浅染，胸腺小体-Hassall小体）③无淋巴窦" },
+                    { question: "胸腺的功能", answer: "①T淋巴细胞分化成熟的场所：骨髓来源的淋巴干细胞→胸腺→成熟T细胞 ②分泌胸腺激素（胸腺素、胸腺生成素）：促进T细胞分化成熟，增强免疫功能 ③细胞免疫的中枢" },
+                    { question: "胸腺的年龄变化", answer: "新生儿：10-15g；青春期：30-40g（最大）；成年后：逐渐萎缩，脂肪组织替代；老年：仅残留少许，重约5-15g" },
+                    { question: "淋巴结的位置", answer: "沿淋巴管分布，多群集于颈部、腋窝、腹股沟、肠系膜等处。浅表淋巴结正常不易触及，肿大时可触及" },
+                    { question: "淋巴结的形态", answer: "蚕豆形或卵圆形，直径0.2-2cm。凸面：输入淋巴管进入；凹面（门）：输出淋巴管、血管出入" },
+                    { question: "淋巴结的结构", answer: "①被膜：致密结缔组织 ②小梁：由被膜深入实质 ③皮质：外层，含淋巴小结（B细胞区）④副皮质区：皮髓质之间（T细胞区）⑤髓质：中央，含髓索（产生浆细胞、抗体）和髓窦 ⑥淋巴窦：皮质窦、髓窦，淋巴液流经，巨噬细胞过滤" },
+                    { question: "淋巴结的功能", answer: "①过滤淋巴：巨噬细胞清除细菌、异物、肿瘤细胞 ②产生淋巴细胞和抗体：免疫应答 ③是抗原与淋巴细胞相遇的场所 ④淋巴回流的中继站" },
+                    { question: "淋巴结肿大", answer: "原因：①感染：细菌、病毒、结核 ②肿瘤：淋巴瘤、癌转移 ③自身免疫病：系统性红斑狼疮。特点：炎症性肿大（疼痛、活动）、肿瘤性肿大（无痛、质硬、固定）" },
+                    { question: "重要淋巴结群", answer: "①颈淋巴结：收纳头颈部淋巴 ②腋淋巴结：收纳上肢、胸壁、乳腺淋巴（乳腺癌转移）③腹股沟淋巴结：收纳下肢、会阴、下腹壁淋巴 ④气管支气管淋巴结：收纳肺、气管淋巴 ⑤肠系膜淋巴结：收纳小肠淋巴（肠结核、肠伤寒时肿大）" },
+                    { question: "扁桃体", answer: "咽部淋巴组织团块，包括：①腭扁桃体（最大，位于腭舌弓和腭咽弓之间）②咽扁桃体（腺样体，位于鼻咽顶后壁）③舌扁桃体（舌根）。功能：防御呼吸道和消化道入口的感染" },
+                    { question: "扁桃体炎和肥大", answer: "儿童易发扁桃体炎（细菌、病毒感染）。咽扁桃体肥大（腺样体肥大）→鼻塞、张口呼吸、打鼾、腺样体面容。反复发作需手术切除" },
+                    { question: "胸导管", answer: "最大的淋巴导管，长38-45cm。①起始：乳糜池（第1-2腰椎前方）②行程：上行穿膈→后纵隔→左颈根部 ③注入：左静脉角（左颈内静脉+左锁骨下静脉）。收集：下半身+左上半身（左上肢、左头颈、左胸）约3/4身体的淋巴" },
+                    { question: "右淋巴导管", answer: "短而细，长1-2cm。收集右上半身（右上肢、右头颈、右胸）约1/4身体的淋巴，注入右静脉角" },
+                    { question: "淋巴回流障碍", answer: "原因：①先天性淋巴管发育不良 ②丝虫病阻塞淋巴管 ③肿瘤压迫、手术切除淋巴结 ④炎症。后果：淋巴水肿，严重者象皮肿" }
+                ],
+                matching: [
+                    { term: "脾", definition: "最大的淋巴器官" },
+                    { term: "胸腺", definition: "T淋巴细胞分化成熟的场所" },
+                    { term: "淋巴结", definition: "过滤淋巴，产生淋巴细胞" },
+                    { term: "胸导管", definition: "收集3/4身体的淋巴" },
+                    { term: "右淋巴导管", definition: "收集右上半身淋巴" },
+                    { term: "扁桃体", definition: "咽部的淋巴组织" }
+                ],
+                fillblank: [
+                    { question: "脾位于___区", answer: "左季肋" },
+                    { question: "胸腺是___淋巴器官", answer: "中枢" },
+                    { question: "脾平第___肋", answer: "9-11" },
+                    { question: "胸导管收集约___身体的淋巴", answer: "3/4" },
+                    { question: "胸腺青春期重约___g", answer: "30-40" }
+                ]
+            }
+        };
+
+        // 游戏状态
+        let gameState = {
+            mode: null,
+            currentSystem: '骨骼系统',
+            currentQuestion: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            selectedCards: [],
+            matchedPairs: [],
+            isFlipped: false
+        };
+
+        // 初始化
+        function init() {
+            updateStats();
+        }
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById('correctCount').textContent = gameState.correctCount;
+            document.getElementById('wrongCount').textContent = gameState.wrongCount;
+            const total = gameState.correctCount + gameState.wrongCount;
+            const accuracy = total > 0 ? Math.round((gameState.correctCount / total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // 创建系统选择器
+        function createSystemSelector(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            Object.keys(anatomyData).forEach(system => {
+                const btn = document.createElement('button');
+                btn.className = 'system-btn' + (system === gameState.currentSystem ? ' active' : '');
+                btn.textContent = system;
+                btn.onclick = () => {
+                    gameState.currentSystem = system;
+                    gameState.currentQuestion = 0;
+                    document.querySelectorAll('.system-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if (gameState.mode === 'quiz') loadQuestion();
+                    else if (gameState.mode === 'flashcard') loadFlashcard();
+                    else if (gameState.mode === 'fillblank') loadFillBlank();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // 开始游戏模式
+        function startMode(mode) {
+            gameState.mode = mode;
+            gameState.currentQuestion = 0;
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.querySelectorAll('.game-area').forEach(area => area.classList.remove('active'));
+            
+            if (mode === 'quiz') {
+                document.getElementById('quizGame').classList.add('active');
+                createSystemSelector('systemSelector');
+                loadQuestion();
+            } else if (mode === 'flashcard') {
+                document.getElementById('flashcardGame').classList.add('active');
+                createSystemSelector('flashcardSystemSelector');
+                loadFlashcard();
+            } else if (mode === 'matching') {
+                document.getElementById('matchingGame').classList.add('active');
+                initMatching();
+            } else if (mode === 'fillblank') {
+                document.getElementById('fillblankGame').classList.add('active');
+                createSystemSelector('fillblankSystemSelector');
+                loadFillBlank();
+            }
+        }
+
+        // 加载选择题
+        function loadQuestion() {
+            const questions = anatomyData[gameState.currentSystem].quiz;
+            const q = questions[gameState.currentQuestion];
+            
+            const progress = ((gameState.currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('quizProgress').style.width = progress + '%';
+            
+            const card = document.getElementById('questionCard');
+            card.innerHTML = `
+                <h2>问题 ${gameState.currentQuestion + 1}/${questions.length}</h2>
+                <p style="font-size: 1.3em; margin: 20px 0;">${q.question}</p>
+                <div class="options">
+                    ${q.options.map((opt, i) => `
+                        <button class="option-btn" onclick="checkAnswer(${i})">${opt}</button>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('quizFeedback').classList.remove('show');
+        }
+
+        // 检查答案
+        function checkAnswer(selected) {
+            const questions = anatomyData[gameState.currentSystem].quiz;
+            const q = questions[gameState.currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('correct');
+                } else if (i === selected) {
+                    btn.classList.add('wrong');
+                }
+            });
+            
+            const feedback = document.getElementById('quizFeedback');
+            if (selected === q.correct) {
+                gameState.correctCount++;
+                feedback.className = 'feedback show correct';
+                feedback.innerHTML = `<strong>✓ 正确！</strong><br>${q.explanation}`;
+            } else {
+                gameState.wrongCount++;
+                feedback.className = 'feedback show wrong';
+                feedback.innerHTML = `<strong>✗ 错误！</strong><br>${q.explanation}`;
+            }
+            
+            updateStats();
+        }
+
+        // 下一题
+        function nextQuestion() {
+            const questions = anatomyData[gameState.currentSystem].quiz;
+            gameState.currentQuestion++;
+            if (gameState.currentQuestion >= questions.length) {
+                gameState.currentQuestion = 0;
+            }
+            loadQuestion();
+        }
+
+        // 加载记忆卡片
+        function loadFlashcard() {
+            const cards = anatomyData[gameState.currentSystem].flashcards;
+            const card = cards[gameState.currentQuestion];
+            
+            const progress = ((gameState.currentQuestion + 1) / cards.length) * 100;
+            document.getElementById('flashcardProgress').style.width = progress + '%';
+            
+            document.getElementById('flashcardQuestion').textContent = card.question;
+            document.getElementById('flashcardAnswer').textContent = card.answer;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.remove('flipped');
+            gameState.isFlipped = false;
+        }
+
+        // 翻转卡片
+        function flipCard() {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.toggle('flipped');
+            gameState.isFlipped = !gameState.isFlipped;
+        }
+
+        // 下一张卡片
+        function nextFlashcard() {
+            const cards = anatomyData[gameState.currentSystem].flashcards;
+            gameState.currentQuestion++;
+            if (gameState.currentQuestion >= cards.length) {
+                gameState.currentQuestion = 0;
+            }
+            loadFlashcard();
+        }
+
+        // 初始化配对游戏
+        function initMatching() {
+            gameState.selectedCards = [];
+            gameState.matchedPairs = [];
+            
+            // 随机选择一个系统
+            const systems = Object.keys(anatomyData);
+            const randomSystem = systems[Math.floor(Math.random() * systems.length)];
+            const pairs = anatomyData[randomSystem].matching;
+            
+            // 创建卡片数组
+            let cards = [];
+            pairs.forEach((pair, index) => {
+                cards.push({ id: index, text: pair.term, type: 'term' });
+                cards.push({ id: index, text: pair.definition, type: 'definition' });
+            });
+            
+            // 打乱卡片
+            cards.sort(() => Math.random() - 0.5);
+            
+            const grid = document.getElementById('matchingGrid');
+            grid.innerHTML = cards.map((card, i) => `
+                <div class="match-card" data-id="${card.id}" data-index="${i}" onclick="selectCard(${i})">
+                    ${card.text}
+                </div>
+            `).join('');
+        }
+
+        // 选择配对卡片
+        function selectCard(index) {
+            const card = document.querySelector(`[data-index="${index}"]`);
+            if (card.classList.contains('matched')) return;
+            
+            if (gameState.selectedCards.includes(index)) {
+                card.classList.remove('selected');
+                gameState.selectedCards = gameState.selectedCards.filter(i => i !== index);
+                return;
+            }
+            
+            if (gameState.selectedCards.length >= 2) return;
+            
+            card.classList.add('selected');
+            gameState.selectedCards.push(index);
+            
+            if (gameState.selectedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        // 检查配对
+        function checkMatch() {
+            const cards = document.querySelectorAll('.match-card');
+            const [index1, index2] = gameState.selectedCards;
+            const card1 = cards[index1];
+            const card2 = cards[index2];
+            
+            const id1 = card1.dataset.id;
+            const id2 = card2.dataset.id;
+            
+            setTimeout(() => {
+                if (id1 === id2) {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    card1.classList.remove('selected');
+                    card2.classList.remove('selected');
+                    gameState.matchedPairs.push(id1);
+                    gameState.correctCount++;
+                    
+                    if (gameState.matchedPairs.length === document.querySelectorAll('.match-card').length / 2) {
+                        setTimeout(() => {
+                            alert('恭喜！全部配对成功！');
+                            initMatching();
+                        }, 500);
+                    }
+                } else {
+                    card1.classList.remove('selected');
+                    card2.classList.remove('selected');
+                    gameState.wrongCount++;
+                }
+                gameState.selectedCards = [];
+                updateStats();
+            }, 500);
+        }
+
+        // 重置配对游戏
+        function resetMatching() {
+            initMatching();
+        }
+
+        // 加载填空题
+        function loadFillBlank() {
+            const questions = anatomyData[gameState.currentSystem].fillblank;
+            const q = questions[gameState.currentQuestion];
+            
+            const progress = ((gameState.currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('fillblankProgress').style.width = progress + '%';
+            
+            const card = document.getElementById('fillblankCard');
+            const questionParts = q.question.split('___');
+            
+            card.innerHTML = `
+                <h2>填空题 ${gameState.currentQuestion + 1}/${questions.length}</h2>
+                <p style="font-size: 1.3em; margin: 20px 0;">
+                    ${questionParts[0]}
+                    <span class="fill-blank">
+                        <input type="text" id="fillInput" placeholder="在此填写答案">
+                    </span>
+                    ${questionParts[1] || ''}
+                </p>
+            `;
+            
+            document.getElementById('fillblankFeedback').classList.remove('show');
+        }
+
+        // 检查填空答案
+        function checkFillBlank() {
+            const questions = anatomyData[gameState.currentSystem].fillblank;
+            const q = questions[gameState.currentQuestion];
+            const userAnswer = document.getElementById('fillInput').value.trim();
+            
+            const feedback = document.getElementById('fillblankFeedback');
+            
+            if (userAnswer.toLowerCase() === q.answer.toLowerCase()) {
+                gameState.correctCount++;
+                feedback.className = 'feedback show correct';
+                feedback.innerHTML = `<strong>✓ 正确！</strong>答案是：${q.answer}`;
+            } else {
+                gameState.wrongCount++;
+                feedback.className = 'feedback show wrong';
+                feedback.innerHTML = `<strong>✗ 错误！</strong>正确答案是：${q.answer}`;
+            }
+            
+            updateStats();
+        }
+
+        // 下一道填空题
+        function nextFillBlank() {
+            const questions = anatomyData[gameState.currentSystem].fillblank;
+            gameState.currentQuestion++;
+            if (gameState.currentQuestion >= questions.length) {
+                gameState.currentQuestion = 0;
+            }
+            loadFillBlank();
+        }
+
+        // 返回主菜单
+        function backToMenu() {
+            document.querySelectorAll('.game-area').forEach(area => area.classList.remove('active'));
+            document.getElementById('mainMenu').style.display = 'grid';
+            gameState.currentQuestion = 0;
+        }
+
+        // 初始化游戏
+        window.onload = init;
+    </script>
+</body>
+</html>
